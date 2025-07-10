@@ -6,6 +6,10 @@
   <title>Kas QC Shift</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <script src="https://cdn.jsdelivr.net/npm/appwrite@10.0.0"></script>
+  <script const client = new Appwrite.Client();
+    client
+      .setEndpoint('https://fra.cloud.appwrite.io/v1')
+      .setProject('686f8911000c95bfb037');</script>
   <style>
     body {
       background: linear-gradient(to bottom, #000000, #0f0f0f);
@@ -184,10 +188,6 @@
     // =============================================
     // KONFIGURASI APPWRITE
     // =============================================
-    const client = new Appwrite.Client();
-    client
-      .setEndpoint('https://fra.cloud.appwrite.io/v1')
-      .setProject('686f8911000c95bfb037');
 
     const account = new Appwrite.Account(client);
     const databases = new Appwrite.Databases(client);
