@@ -6,13 +6,6 @@
   <title>Kas QC Shift</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <script src="https://cdn.jsdelivr.net/npm/appwrite@10.0.0"></script>
-<script>
-  const client = new Appwrite.Client();
-  client
-    .setEndpoint('https://fra.cloud.appwrite.io/v1')
-    .setProject('686f8911000c95bfb037');
-</script>
-
   <style>
     body {
       background: linear-gradient(to bottom, #000000, #0f0f0f);
@@ -31,9 +24,6 @@
   </style>
 </head>
 <body class="text-gray-100 font-sans">
-  <!-- ==================== -->
-  <!-- Halaman Auth -->
-  <!-- ==================== -->
   <div id="auth-page" class="page active-page p-4">
     <div class="max-w-md mx-auto mt-12">
       <div class="text-center mb-8">
@@ -52,7 +42,6 @@
           </button>
         </div>
 
-        <!-- Form Login -->
         <form id="login-form" class="p-6">
           <div class="space-y-4">
             <div>
@@ -71,7 +60,6 @@
           </div>
         </form>
 
-        <!-- Form Register -->
         <form id="register-form" class="p-6 hidden">
           <div class="space-y-4">
             <div>
@@ -98,9 +86,6 @@
     </div>
   </div>
 
-  <!-- ==================== -->
-  <!-- Halaman Dashboard -->
-  <!-- ==================== -->
   <div id="dashboard-page" class="page">
     <nav class="bg-black/80 p-4 border-b border-purple-900/50 sticky top-0 z-50">
       <div class="container mx-auto flex justify-between items-center">
@@ -115,7 +100,6 @@
 
     <main class="container mx-auto p-4 pb-20">
       <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        <!-- Sidebar -->
         <div class="lg:col-span-1 space-y-6">
           <div class="solana-card bg-gray-900/50 rounded-xl p-6">
             <div class="flex items-center space-x-4">
@@ -135,9 +119,7 @@
           </div>
         </div>
 
-        <!-- Konten Utama -->
         <div class="lg:col-span-2 space-y-6">
-          <!-- Section Transaksi -->
           <div class="solana-card bg-gray-900/50 rounded-xl p-6">
             <div class="flex justify-between items-center mb-6">
               <h2 class="text-xl font-semibold">Kas & Transaksi</h2>
@@ -146,7 +128,6 @@
               </button>
             </div>
             
-            <!-- Form Transaksi (Hidden) -->
             <form id="transaction-form" class="hidden space-y-4 mb-6">
               <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
@@ -158,7 +139,7 @@
                 </div>
                 <div>
                   <label class="block text-sm mb-1">Jumlah (Rp)</label>
-                  <input type="number" id="transaction-amount" class="w-full px-4 py-2 bg-gray-800/50 border border-gray-700 rounded-lg">
+                  <input type="number" id="transaction-amount" class="w-full px-4 py-2 bg-gray-800/50 border border-gray-700 rounded-lg" min="1">
                 </div>
               </div>
               <div>
@@ -175,11 +156,8 @@
               </div>
             </form>
 
-            <!-- Daftar Transaksi -->
             <div id="transactions-list" class="space-y-3">
-              <div class="text-center py-10 text-gray-500">
-                <p>Memuat data transaksi...</p>
-              </div>
+              <p class="text-center py-10 text-gray-500">Memuat data transaksi...</p>
             </div>
           </div>
         </div>
@@ -191,18 +169,22 @@
     // =============================================
     // KONFIGURASI APPWRITE
     // =============================================
+    const client = new Appwrite.Client();
+    client
+      .setEndpoint('https://fra.cloud.appwrite.io/v1')
+      .setProject('686f8911000c95bfb037');
 
     const account = new Appwrite.Account(client);
     const databases = new Appwrite.Databases(client);
-    const storage = new Appwrite.Storage(client);
+    const storage = new Appwrite.Storage(client); // Unused in this context, but good to keep if needed later.
 
     const DB_ID = 'kas_qc_shift';
     const COLLECTIONS = {
       TRANSACTIONS: 'transactions',
-      AGENDA: 'agenda',
-      POSTS: 'posts'
+      // AGENDA: 'agenda', // Not used in this code, consider removing if truly not needed.
+      // POSTS: 'posts' // Not used in this code, consider removing if truly not needed.
     };
-    const BUCKET_ID = 'qc_files';
+    // const BUCKET_ID = 'qc_files'; // Not used in this code, consider removing if truly not needed.
 
     // =============================================
     // MANAJEMEN HALAMAN
@@ -218,22 +200,28 @@
     // FUNGSI AUTHENTIKASI
     // =============================================
     // Tab Switching
-    document.getElementById('login-tab').addEventListener('click', () => {
-      document.getElementById('login-form').classList.remove('hidden');
-      document.getElementById('register-form').classList.add('hidden');
-      document.getElementById('login-tab').classList.add('bg-gray-800/50', 'text-purple-400');
-      document.getElementById('login-tab').classList.remove('text-gray-400');
-      document.getElementById('register-tab').classList.add('text-gray-400');
-      document.getElementById('register-tab').classList.remove('bg-gray-800/50', 'text-purple-400');
+    const loginTab = document.getElementById('login-tab');
+    const registerTab = document.getElementById('register-tab');
+    const loginForm = document.getElementById('login-form');
+    const registerForm = document.getElementById('register-form');
+
+    function setActiveTab(activeTabElement, inactiveTabElement, activeFormElement, inactiveFormElement) {
+      activeFormElement.classList.remove('hidden');
+      inactiveFormElement.classList.add('hidden');
+
+      activeTabElement.classList.add('bg-gray-800/50', 'text-purple-400');
+      activeTabElement.classList.remove('text-gray-400');
+
+      inactiveTabElement.classList.add('text-gray-400');
+      inactiveTabElement.classList.remove('bg-gray-800/50', 'text-purple-400');
+    }
+
+    loginTab.addEventListener('click', () => {
+      setActiveTab(loginTab, registerTab, loginForm, registerForm);
     });
 
-    document.getElementById('register-tab').addEventListener('click', () => {
-      document.getElementById('register-form').classList.remove('hidden');
-      document.getElementById('login-form').classList.add('hidden');
-      document.getElementById('register-tab').classList.add('bg-gray-800/50', 'text-purple-400');
-      document.getElementById('register-tab').classList.remove('text-gray-400');
-      document.getElementById('login-tab').classList.add('text-gray-400');
-      document.getElementById('login-tab').classList.remove('bg-gray-800/50', 'text-purple-400');
+    registerTab.addEventListener('click', () => {
+      setActiveTab(registerTab, loginTab, registerForm, loginForm);
     });
 
     // Login
@@ -275,6 +263,7 @@
         showPage('auth-page');
       } catch (error) {
         console.error('Logout error:', error);
+        alert('Gagal logout. Silakan coba lagi.');
       }
     });
 
@@ -288,6 +277,8 @@
         loadTransactions();
       } catch (error) {
         console.error('Failed to load dashboard:', error);
+        alert('Gagal memuat data dashboard. Silakan coba login ulang.');
+        showPage('auth-page'); // Redirect to login if dashboard data fails to load
       }
     }
 
@@ -298,24 +289,32 @@
 
     // Transaksi
     async function loadTransactions() {
+      const transactionsListContainer = document.getElementById('transactions-list');
+      transactionsListContainer.innerHTML = '<p class="text-center py-10 text-gray-500">Memuat data transaksi...</p>'; // Show loading message
+
       try {
         const response = await databases.listDocuments(DB_ID, COLLECTIONS.TRANSACTIONS);
         renderTransactions(response.documents);
         calculateBalance(response.documents);
       } catch (error) {
         console.error('Error loading transactions:', error);
+        transactionsListContainer.innerHTML = '<p class="text-center py-10 text-red-400">Gagal memuat transaksi. Silakan coba refresh.</p>';
       }
     }
 
     function renderTransactions(transactions) {
       const container = document.getElementById('transactions-list');
+      if (transactions.length === 0) {
+        container.innerHTML = '<p class="text-center py-10 text-gray-500">Belum ada transaksi.</p>';
+        return;
+      }
       container.innerHTML = transactions.map(tx => `
-        <div class="flex justify-between p-3 ${tx.type === 'masuk' ? 'bg-green-900/20' : 'bg-red-900/20'} rounded-lg border-l-4 ${tx.type === 'masuk' ? 'border-green-500' : 'border-red-500'}">
+        <div class="flex justify-between items-center p-3 ${tx.type === 'masuk' ? 'bg-green-900/20' : 'bg-red-900/20'} rounded-lg border-l-4 ${tx.type === 'masuk' ? 'border-green-500' : 'border-red-500'}">
           <div>
             <p class="font-medium">${tx.description}</p>
-            <p class="text-sm text-gray-400">${new Date(tx.$createdAt).toLocaleDateString('id-ID')}</p>
+            <p class="text-sm text-gray-400">${new Date(tx.$createdAt).toLocaleDateString('id-ID', { day: '2-digit', month: 'short', year: 'numeric' })}</p>
           </div>
-          <p class="${tx.type === 'masuk' ? 'text-green-400' : 'text-red-400'} font-mono">
+          <p class="${tx.type === 'masuk' ? 'text-green-400' : 'text-red-400'} font-mono text-lg font-bold">
             ${tx.type === 'masuk' ? '+' : '-'}Rp ${parseInt(tx.amount).toLocaleString('id-ID')}
           </p>
         </div>
@@ -331,43 +330,59 @@
     }
 
     // Form Transaksi
-    document.getElementById('add-transaction-btn').addEventListener('click', () => {
-      document.getElementById('transaction-form').classList.remove('hidden');
-      document.getElementById('add-transaction-btn').classList.add('hidden');
+    const addTransactionBtn = document.getElementById('add-transaction-btn');
+    const cancelTransactionBtn = document.getElementById('cancel-transaction-btn');
+    const transactionForm = document.getElementById('transaction-form');
+    const transactionAmountInput = document.getElementById('transaction-amount');
+    const transactionDescInput = document.getElementById('transaction-desc');
+    const transactionTypeSelect = document.getElementById('transaction-type');
+
+
+    addTransactionBtn.addEventListener('click', () => {
+      transactionForm.classList.remove('hidden');
+      addTransactionBtn.classList.add('hidden');
     });
 
-    document.getElementById('cancel-transaction-btn').addEventListener('click', () => {
-      document.getElementById('transaction-form').classList.add('hidden');
-      document.getElementById('add-transaction-btn').classList.remove('hidden');
+    cancelTransactionBtn.addEventListener('click', () => {
+      transactionForm.classList.add('hidden');
+      addTransactionBtn.classList.remove('hidden');
+      transactionForm.reset(); // Clear form on cancel
     });
 
-    document.getElementById('transaction-form').addEventListener('submit', async (e) => {
+    transactionForm.addEventListener('submit', async (e) => {
       e.preventDefault();
-      const type = document.getElementById('transaction-type').value;
-      const amount = document.getElementById('transaction-amount').value;
-      const description = document.getElementById('transaction-desc').value;
-      const user = await account.get();
+      const type = transactionTypeSelect.value;
+      const amount = parseInt(transactionAmountInput.value); // Parse as integer
+      const description = transactionDescInput.value.trim(); // Trim whitespace
 
-      if (!amount || !description) {
-        alert('Mohon isi semua field');
+      if (isNaN(amount) || amount <= 0) {
+        alert('Jumlah harus angka positif.');
+        return;
+      }
+      if (!description) {
+        alert('Keterangan tidak boleh kosong.');
         return;
       }
 
       try {
+        const user = await account.get(); // Fetch user again to ensure latest data
+
         await databases.createDocument(DB_ID, COLLECTIONS.TRANSACTIONS, 'unique()', {
           type,
-          amount: parseInt(amount),
+          amount: amount,
           description,
           userId: user.$id,
-          userName: user.name || user.email
+          userName: user.name || user.email,
+          timestamp: new Date().toISOString() // Add a timestamp for better ordering/filtering if needed
         });
 
-        document.getElementById('transaction-form').reset();
-        document.getElementById('transaction-form').classList.add('hidden');
-        document.getElementById('add-transaction-btn').classList.remove('hidden');
+        transactionForm.reset();
+        transactionForm.classList.add('hidden');
+        addTransactionBtn.classList.remove('hidden');
         loadTransactions();
       } catch (error) {
-        alert('Gagal menyimpan transaksi: ' + error.message);
+        console.error('Gagal menyimpan transaksi:', error);
+        alert('Gagal menyimpan transaksi: ' + (error.message || 'Terjadi kesalahan.'));
       }
     });
 
@@ -380,6 +395,7 @@
         showPage('dashboard-page');
         loadDashboardData();
       } catch (error) {
+        // If account.get() fails, it means no active session, so show auth page
         showPage('auth-page');
       }
     })();
