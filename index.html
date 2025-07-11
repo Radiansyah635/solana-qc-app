@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Kas QC Shift</title>
   <script src="https://cdn.tailwindcss.com"></script>
-  <script src="https://cdn.jsdelivr.net/npm/appwrite@17.0.0"></script>
+  <script src="https://cdn.jsdelivr.net/npm/appwrite@18.1.1/dist/sdk.min.js"></script>
   
   <style>
     body { background: linear-gradient(to bottom, #000000, #0f0f0f); min-height: 100vh; }
@@ -16,7 +16,6 @@
 </head>
 <body class="text-gray-100 font-sans">
 
-<!-- AUTH PAGE -->
 <div id="auth-page" class="page active-page p-4">
   <div class="max-w-md mx-auto mt-12">
     <div class="text-center mb-8">
@@ -66,7 +65,6 @@
   </div>
 </div>
 
-<!-- DASHBOARD PAGE -->
 <div id="dashboard-page" class="page">
   <nav class="bg-black/80 p-4 border-b border-purple-900/50 sticky top-0 z-50">
     <div class="container mx-auto flex justify-between items-center">
@@ -135,33 +133,63 @@
   </main>
 </div>
 
-<!-- SCRIPT -->
 <script>
   // Konfigurasi Appwrite
   const client = new Appwrite.Client();
   client
-    .setEndpoint('https://fra.cloud.appwrite.io/v1')
-    .setProject('686f8911000c95bfb037')
-  
+    .setEndpoint('https://fra.cloud.appwrite.io/v1') // Pastikan ini endpoint Appwrite Anda
+    .setProject('686f8911000c95bfb037'); // Project ID Anda
+
   const account = new Appwrite.Account(client);
   const databases = new Appwrite.Databases(client);
-  const DB_ID = 'kas_qc_shift';
-  const COLLECTION_ID = 'transactions';
+  // Appwrite.Query diperlukan untuk Query
+  const Query = Appwrite.Query; 
+  
+  const DB_ID = 'kas_qc_shift'; // Ganti dengan ID Database Anda di Appwrite
+  const COLLECTION_ID = 'transactions'; // Ganti dengan ID Koleksi Anda di Appwrite
 
-  // Tab login/register
+  // --- DOM Elements ---
+  const authPage = document.getElementById('auth-page');
+  const dashboardPage = document.getElementById('dashboard-page');
   const loginTab = document.getElementById('login-tab');
   const registerTab = document.getElementById('register-tab');
   const loginForm = document.getElementById('login-form');
   const registerForm = document.getElementById('register-form');
+  const logoutBtn = document.getElementById('logout-btn');
+  const userInitial = document.getElementById('user-initial');
+  const userName = document.getElementById('user-name');
+  // const userRole = document.getElementById('user-role'); // Belum digunakan di kode
+  const totalSaldo = document.getElementById('total-saldo');
+  const transactionsList = document.getElementById('transactions-list');
+  const addTransactionBtn = document.getElementById('add-transaction-btn');
+  const transactionForm = document.getElementById('transaction-form');
+  const cancelTransactionBtn = document.getElementById('cancel-transaction-btn');
 
+  // --- Utility Functions ---
+  function showPage(id) {
+    document.querySelectorAll('.page').forEach(p => p.classList.remove('active-page'));
+    document.getElementById(id).classList.add('active-page');
+  }
+
+  function showLoading(elementId) {
+    document.getElementById(elementId).innerHTML = '<p class="text-center py-10 text-gray-500">Memuat data...</p>';
+  }
+
+  // --- Authentication Logic ---
   loginTab.addEventListener('click', () => {
     loginForm.classList.remove('hidden');
     registerForm.classList.add('hidden');
+    loginTab.classList.add('bg-gray-800/50', 'text-purple-400');
+    registerTab.classList.remove('bg-gray-800/50', 'text-purple-400');
+    registerTab.classList.add('text-gray-400', 'hover:bg-gray-800/30');
   });
 
   registerTab.addEventListener('click', () => {
     registerForm.classList.remove('hidden');
     loginForm.classList.add('hidden');
+    registerTab.classList.add('bg-gray-800/50', 'text-purple-400');
+    loginTab.classList.remove('bg-gray-800/50', 'text-purple-400');
+    loginTab.classList.add('text-gray-400', 'hover:bg-gray-800/30');
   });
 
   // Login
@@ -171,11 +199,13 @@
     const password = document.getElementById('login-password').value;
 
     try {
-      await account.createEmailSession(email, password);
+      // FIX: Menggunakan createEmailPasswordSession untuk Appwrite SDK v18+
+      await account.createEmailPasswordSession(email, password);
       showPage('dashboard-page');
       loadDashboard();
     } catch (err) {
       alert('Login gagal: ' + err.message);
+      console.error('Login error:', err);
     }
   });
 
@@ -187,94 +217,137 @@
     const password = document.getElementById('register-password').value;
 
     try {
-      await account.create('unique()', email, password, name);
-      await account.createEmailSession(email, password);
+      // FIX: Menggunakan Appwrite.ID.unique() karena SDK dimuat secara global
+      await account.create(Appwrite.ID.unique(), email, password, name);
+      // Login otomatis setelah registrasi
+      await account.createEmailPasswordSession(email, password);
+      alert('Registrasi berhasil! Anda sekarang masuk.');
       showPage('dashboard-page');
       loadDashboard();
     } catch (err) {
-      alert('Register gagal: ' + err.message);
+      alert('Registrasi gagal: ' + err.message);
+      console.error('Register error:', err);
     }
   });
 
   // Logout
-  document.getElementById('logout-btn').addEventListener('click', async () => {
-    await account.deleteSession('current');
-    showPage('auth-page');
+  logoutBtn.addEventListener('click', async () => {
+    try {
+      await account.deleteSession('current');
+      showPage('auth-page');
+    } catch (err) {
+      console.error('Logout error:', err);
+      alert('Gagal logout: ' + err.message);
+    }
   });
 
-  function showPage(id) {
-    document.querySelectorAll('.page').forEach(p => p.classList.remove('active-page'));
-    document.getElementById(id).classList.add('active-page');
-  }
-
+  // --- Dashboard & Transaction Logic ---
   async function loadDashboard() {
-    const user = await account.get();
-    document.getElementById('user-name').textContent = user.name || user.email;
-    document.getElementById('user-initial').textContent = (user.name || user.email).charAt(0).toUpperCase();
+    showLoading('transactions-list');
+    totalSaldo.textContent = 'Rp Memuat...';
 
-    const res = await databases.listDocuments(DB_ID, COLLECTION_ID);
-    const list = res.documents.map(tx => `
-      <div class="flex justify-between p-3 ${tx.type === 'masuk' ? 'bg-green-900/20' : 'bg-red-900/20'} rounded-lg border-l-4 ${tx.type === 'masuk' ? 'border-green-500' : 'border-red-500'}">
-        <div>
-          <p class="font-medium">${tx.description}</p>
-          <p class="text-sm text-gray-400">${new Date(tx.$createdAt).toLocaleDateString()}</p>
+    try {
+      const user = await account.get();
+      userName.textContent = user.name || user.email;
+      userInitial.textContent = (user.name || user.email).charAt(0).toUpperCase();
+
+      // Memuat transaksi
+      const res = await databases.listDocuments(DB_ID, COLLECTION_ID, [
+          Query.orderDesc("$createdAt"), // Urutkan dari terbaru
+          Query.equal("userId", user.$id) // Filter hanya transaksi user yang login
+      ]);
+
+      const list = res.documents.map(tx => `
+        <div class="flex justify-between p-3 ${tx.type === 'masuk' ? 'bg-green-900/20' : 'bg-red-900/20'} rounded-lg border-l-4 ${tx.type === 'masuk' ? 'border-green-500' : 'border-red-500'}">
+          <div>
+            <p class="font-medium">${tx.description}</p>
+            <p class="text-sm text-gray-400">${new Date(tx.$createdAt).toLocaleDateString('id-ID')}</p>
+          </div>
+          <p class="font-mono ${tx.type === 'masuk' ? 'text-green-400' : 'text-red-400'}">
+            ${tx.type === 'masuk' ? '+' : '-'}Rp ${parseInt(tx.amount).toLocaleString('id-ID')}
+          </p>
         </div>
-        <p class="font-mono ${tx.type === 'masuk' ? 'text-green-400' : 'text-red-400'}">
-          ${tx.type === 'masuk' ? '+' : '-'}Rp ${parseInt(tx.amount).toLocaleString('id-ID')}
-        </p>
-      </div>`).join('');
+      `).join('');
 
-    document.getElementById('transactions-list').innerHTML = list || '<p class="text-center py-10 text-gray-500">Belum ada transaksi.</p>';
+      transactionsList.innerHTML = list || '<p class="text-center py-10 text-gray-500">Belum ada transaksi.</p>';
 
-    const saldo = res.documents.reduce((t, tx) => t + (tx.type === 'masuk' ? parseInt(tx.amount) : -parseInt(tx.amount)), 0);
-    document.getElementById('total-saldo').textContent = 'Rp ' + saldo.toLocaleString('id-ID');
+      const saldo = res.documents.reduce((t, tx) => t + (tx.type === 'masuk' ? parseInt(tx.amount) : -parseInt(tx.amount)), 0);
+      totalSaldo.textContent = 'Rp ' + saldo.toLocaleString('id-ID');
+
+    } catch (err) {
+      console.error('Error loading dashboard:', err);
+      // Handle cases where user session might have expired on dashboard page
+      if (err.code === 401) {
+        alert('Sesi Anda telah berakhir. Silakan login kembali.');
+        showPage('auth-page');
+      } else {
+        alert('Gagal memuat dashboard: ' + err.message);
+        transactionsList.innerHTML = '<p class="text-center py-10 text-red-500">Gagal memuat transaksi.</p>';
+        totalSaldo.textContent = 'Rp Error';
+      }
+    }
   }
 
-  document.getElementById('add-transaction-btn').addEventListener('click', () => {
-    document.getElementById('transaction-form').classList.remove('hidden');
-    document.getElementById('add-transaction-btn').classList.add('hidden');
+  addTransactionBtn.addEventListener('click', () => {
+    transactionForm.classList.remove('hidden');
+    addTransactionBtn.classList.add('hidden');
   });
 
-  document.getElementById('cancel-transaction-btn').addEventListener('click', () => {
-    document.getElementById('transaction-form').classList.add('hidden');
-    document.getElementById('add-transaction-btn').classList.remove('hidden');
-    document.getElementById('transaction-form').reset();
+  cancelTransactionBtn.addEventListener('click', () => {
+    transactionForm.classList.add('hidden');
+    addTransactionBtn.classList.remove('hidden');
+    transactionForm.reset();
   });
 
-  document.getElementById('transaction-form').addEventListener('submit', async (e) => {
+  transactionForm.addEventListener('submit', async (e) => {
     e.preventDefault();
     const amount = parseInt(document.getElementById('transaction-amount').value);
     const desc = document.getElementById('transaction-desc').value.trim();
     const type = document.getElementById('transaction-type').value;
 
-    if (!amount || amount <= 0 || !desc) return alert('Isi semua field dengan benar');
+    if (!amount || amount <= 0 || !desc) {
+      return alert('Isi semua field dengan benar (jumlah harus lebih dari 0).');
+    }
 
-    const user = await account.get();
-    await databases.createDocument(DB_ID, COLLECTION_ID, 'unique()', {
-      type,
-      amount,
-      description: desc,
-      userId: user.$id,
-      userName: user.name,
-    });
+    try {
+      const user = await account.get(); // Pastikan user login
+      await databases.createDocument(
+        DB_ID,
+        COLLECTION_ID,
+        Appwrite.ID.unique(), // Menggunakan Appwrite.ID.unique()
+        {
+          type,
+          amount,
+          description: desc,
+          userId: user.$id,
+          userName: user.name,
+        },
+        // PENTING: Permissions untuk memastikan hanya user yang bisa membaca/menulis datanya
+        [`read("user:${user.$id}")`, `write("user:${user.$id}")`]
+      );
 
-    document.getElementById('transaction-form').reset();
-    document.getElementById('transaction-form').classList.add('hidden');
-    document.getElementById('add-transaction-btn').classList.remove('hidden');
-    loadDashboard();
+      transactionForm.reset();
+      transactionForm.classList.add('hidden');
+      addTransactionBtn.classList.remove('hidden');
+      loadDashboard(); // Refresh dashboard setelah menambahkan transaksi
+    } catch (err) {
+      alert('Gagal menambahkan transaksi: ' + err.message);
+      console.error('Add transaction error:', err);
+    }
   });
 
-  // Auto Load
+  // --- Initial Load ---
+  // Ini akan memeriksa sesi user saat halaman pertama kali dimuat
   (async () => {
     try {
-      await account.get();
+      await account.get(); // Mencoba mendapatkan sesi user yang aktif
       showPage('dashboard-page');
       loadDashboard();
     } catch {
-      showPage('auth-page');
+      showPage('auth-page'); // Jika tidak ada sesi, tampilkan halaman auth
     }
   })();
 </script>
 
 </body>
-  </html>
+</html>
