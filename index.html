@@ -1,26 +1,21 @@
 <!DOCTYPE html>
 <html lang="id">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Kas QC Shift</title>
+  <script src="https://cdn.jsdelivr.net/npm/appwrite@18.1.1"></script>
   <script src="https://cdn.tailwindcss.com"></script>
-  <script src="https://cdn.jsdelivr.net/npm/appwrite@10.3.0/dist/esm/index.js"></script>
   <style>
-    body { background: linear-gradient(to bottom, #000000, #0f0f0f); min-height: 100vh; }
     .page { display: none; }
     .active-page { display: block; }
-    .solana-card { backdrop-filter: blur(10px); border: 1px solid rgba(168, 85, 247, 0.3); }
-    .error-message { color: #ef4444; font-size: 0.875rem; margin-top: 0.25rem; }
     .loading-spinner {
-      border: 2px solid rgba(255, 255, 255, 0.3);
+      border: 2px solid rgba(255,255,255,0.3);
       border-radius: 50%;
-      border-top: 2px solid #8b5cf6;
+      border-top: 2px solid #fff;
       width: 16px;
       height: 16px;
       animation: spin 1s linear infinite;
-      display: inline-block;
-      vertical-align: middle;
       margin-left: 8px;
     }
     @keyframes spin {
@@ -29,481 +24,377 @@
     }
   </style>
 </head>
-<body class="text-gray-100 font-sans">
-
-<!-- AUTH PAGE -->
-<div id="auth-page" class="page active-page p-4">
-  <div class="max-w-md mx-auto mt-12">
-    <div class="text-center mb-8">
-      <h1 class="text-3xl font-bold bg-gradient-to-r from-purple-400 to-green-400 bg-clip-text text-transparent mb-2">
-        Kas QC Shift
-      </h1>
-      <p class="text-gray-400">Manajemen Kas Team QC</p>
-    </div>
-
-    <div class="solana-card bg-gray-900/50 rounded-xl overflow-hidden mb-6">
-      <div class="flex border-b border-gray-800">
-        <button id="login-tab" class="flex-1 py-4 font-medium bg-gray-800/50 text-purple-400">Login</button>
-        <button id="register-tab" class="flex-1 py-4 font-medium text-gray-400 hover:bg-gray-800/30">Register</button>
+<body class="bg-gray-900 text-white min-h-screen">
+  <!-- Auth Page -->
+  <div id="auth-page" class="page active-page p-4 max-w-md mx-auto mt-10">
+    <div class="bg-gray-800 rounded-lg shadow-lg overflow-hidden">
+      <div class="flex border-b border-gray-700">
+        <button id="login-tab-btn" class="flex-1 py-3 font-medium bg-gray-700">Login</button>
+        <button id="register-tab-btn" class="flex-1 py-3 font-medium">Register</button>
       </div>
-
-      <form id="login-form" class="p-6">
-        <div class="space-y-4">
-          <div>
-            <label class="block text-sm mb-1 text-gray-300">Email</label>
-            <input type="email" id="login-email" required class="w-full px-4 py-3 bg-gray-800/50 border border-gray-700 rounded-lg focus:ring-2 focus:ring-purple-500 focus:outline-none">
-            <div id="login-email-error" class="error-message"></div>
-          </div>
-          <div>
-            <label class="block text-sm mb-1 text-gray-300">Password</label>
-            <input type="password" id="login-password" required minlength="8" class="w-full px-4 py-3 bg-gray-800/50 border border-gray-700 rounded-lg focus:ring-2 focus:ring-purple-500 focus:outline-none">
-            <div id="login-password-error" class="error-message"></div>
-          </div>
-          <button type="submit" id="login-submit" class="w-full py-3 bg-gradient-to-r from-purple-600 to-green-500 hover:opacity-90 rounded-lg font-medium flex justify-center items-center">
-            <span>Masuk</span>
-          </button>
-          <div id="login-error" class="error-message text-center"></div>
+      
+      <!-- Login Form -->
+      <div id="login-form" class="p-6">
+        <div class="mb-4">
+          <label class="block mb-2">Email</label>
+          <input type="email" id="login-email" class="w-full px-4 py-2 bg-gray-700 rounded">
         </div>
-      </form>
-
-      <form id="register-form" class="p-6 hidden">
-        <div class="space-y-4">
-          <div>
-            <label class="block text-sm mb-1 text-gray-300">Nama Lengkap</label>
-            <input type="text" id="register-name" required class="w-full px-4 py-3 bg-gray-800/50 border border-gray-700 rounded-lg focus:ring-2 focus:ring-purple-500 focus:outline-none">
-            <div id="register-name-error" class="error-message"></div>
-          </div>
-          <div>
-            <label class="block text-sm mb-1 text-gray-300">Email</label>
-            <input type="email" id="register-email" required class="w-full px-4 py-3 bg-gray-800/50 border border-gray-700 rounded-lg focus:ring-2 focus:ring-purple-500 focus:outline-none">
-            <div id="register-email-error" class="error-message"></div>
-          </div>
-          <div>
-            <label class="block text-sm mb-1 text-gray-300">Password</label>
-            <input type="password" id="register-password" required minlength="8" class="w-full px-4 py-3 bg-gray-800/50 border border-gray-700 rounded-lg focus:ring-2 focus:ring-purple-500 focus:outline-none">
-            <div id="register-password-error" class="error-message"></div>
-          </div>
-          <button type="submit" id="register-submit" class="w-full py-3 bg-gradient-to-r from-green-600 to-cyan-500 hover:opacity-90 rounded-lg font-medium flex justify-center items-center">
-            <span>Daftar</span>
-          </button>
-          <div id="register-error" class="error-message text-center"></div>
+        <div class="mb-6">
+          <label class="block mb-2">Password</label>
+          <input type="password" id="login-password" class="w-full px-4 py-2 bg-gray-700 rounded">
         </div>
-      </form>
+        <button id="login-btn" class="w-full bg-blue-600 hover:bg-blue-700 py-2 rounded flex justify-center items-center">
+          <span>Login</span>
+        </button>
+        <div id="login-error" class="mt-3 text-red-400 text-sm"></div>
+      </div>
+      
+      <!-- Register Form -->
+      <div id="register-form" class="p-6 hidden">
+        <div class="mb-4">
+          <label class="block mb-2">Nama Lengkap</label>
+          <input type="text" id="register-name" class="w-full px-4 py-2 bg-gray-700 rounded">
+        </div>
+        <div class="mb-4">
+          <label class="block mb-2">Email</label>
+          <input type="email" id="register-email" class="w-full px-4 py-2 bg-gray-700 rounded">
+        </div>
+        <div class="mb-6">
+          <label class="block mb-2">Password</label>
+          <input type="password" id="register-password" class="w-full px-4 py-2 bg-gray-700 rounded">
+        </div>
+        <button id="register-btn" class="w-full bg-green-600 hover:bg-green-700 py-2 rounded flex justify-center items-center">
+          <span>Register</span>
+        </button>
+        <div id="register-error" class="mt-3 text-red-400 text-sm"></div>
+      </div>
     </div>
   </div>
-</div>
-
-<!-- DASHBOARD PAGE -->
-<div id="dashboard-page" class="page">
-  <nav class="bg-black/80 p-4 border-b border-purple-900/50 sticky top-0 z-50">
-    <div class="container mx-auto flex justify-between items-center">
-      <h1 class="text-2xl font-bold bg-gradient-to-r from-purple-400 to-green-400 bg-clip-text text-transparent">Kas QC Shift</h1>
-      <button id="logout-btn" class="px-4 py-2 bg-red-600/80 hover:bg-red-500/90 rounded-lg text-sm">Logout</button>
+  
+  <!-- Dashboard Page -->
+  <div id="dashboard-page" class="page p-4">
+    <div class="flex justify-between items-center mb-6">
+      <h1 class="text-2xl font-bold">Kas QC Shift</h1>
+      <button id="logout-btn" class="bg-red-600 hover:bg-red-700 px-4 py-2 rounded">Logout</button>
     </div>
-  </nav>
-
-  <main class="container mx-auto p-4 pb-20">
-    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
-      <div class="lg:col-span-1 space-y-6">
-        <div class="solana-card bg-gray-900/50 rounded-xl p-6">
-          <div class="flex items-center space-x-4">
-            <div class="w-12 h-12 rounded-full bg-gradient-to-r from-purple-600 to-green-500 flex items-center justify-center text-xl font-bold">
-              <span id="user-initial">U</span>
-            </div>
-            <div>
-              <h3 id="user-name" class="font-medium">User</h3>
-              <p id="user-email" class="text-sm text-gray-400">user@example.com</p>
-              <p id="user-role" class="text-xs text-purple-400 mt-1">QC Team</p>
-            </div>
+    
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+      <!-- User Info -->
+      <div class="bg-gray-800 p-4 rounded-lg">
+        <h2 class="text-lg mb-4">Profil User</h2>
+        <div class="flex items-center">
+          <div class="w-12 h-12 bg-blue-600 rounded-full flex items-center justify-center text-xl font-bold mr-3">
+            <span id="user-initial">U</span>
+          </div>
+          <div>
+            <div id="user-name" class="font-medium">Loading...</div>
+            <div id="user-email" class="text-sm text-gray-400">Loading...</div>
           </div>
         </div>
+      </div>
+      
+      <!-- Balance Info -->
+      <div class="bg-gray-800 p-4 rounded-lg">
+        <h2 class="text-lg mb-4">Saldo Kas</h2>
+        <div class="text-3xl font-bold mb-2" id="total-saldo">Rp 0</div>
+        <div class="flex justify-between text-sm">
+          <div>
+            <div class="text-gray-400">Pemasukan</div>
+            <div class="text-green-400" id="total-income">Rp 0</div>
+          </div>
+          <div>
+            <div class="text-gray-400">Pengeluaran</div>
+            <div class="text-red-400" id="total-expense">Rp 0</div>
+          </div>
+        </div>
+      </div>
+      
+      <!-- Add Transaction -->
+      <div class="bg-gray-800 p-4 rounded-lg">
+        <h2 class="text-lg mb-4">Tambah Transaksi</h2>
+        <div class="mb-3">
+          <select id="transaction-type" class="w-full bg-gray-700 p-2 rounded">
+            <option value="masuk">Pemasukan</option>
+            <option value="keluar">Pengeluaran</option>
+          </select>
+        </div>
+        <div class="mb-3">
+          <input type="number" id="transaction-amount" placeholder="Jumlah" class="w-full bg-gray-700 p-2 rounded">
+        </div>
+        <div class="mb-3">
+          <input type="text" id="transaction-desc" placeholder="Keterangan" class="w-full bg-gray-700 p-2 rounded">
+        </div>
+        <button id="add-transaction-btn" class="w-full bg-blue-600 hover:bg-blue-700 py-2 rounded">Tambah</button>
+      </div>
+    </div>
+    
+    <!-- Transactions List -->
+    <div class="mt-8">
+      <h2 class="text-xl mb-4">Daftar Transaksi</h2>
+      <div id="transactions-list" class="space-y-3">
+        <div class="text-center py-10 text-gray-500">Memuat data transaksi...</div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // Inisialisasi Appwrite SDK
+    const { Client, Account, Databases, Query, ID } = Appwrite;
+    
+    const client = new Client()
+      .setEndpoint('https://fra.cloud.appwrite.io/v1')
+      .setProject('686f8911000c95bfb037');
+      
+    const account = new Account(client);
+    const databases = new Databases(client);
+    
+    const DB_ID = 'kas_qc_shift';
+    const COLLECTION_ID = 'transactions';
+    
+    // DOM Elements
+    const authPage = document.getElementById('auth-page');
+    const dashboardPage = document.getElementById('dashboard-page');
+    const loginForm = document.getElementById('login-form');
+    const registerForm = document.getElementById('register-form');
+    const loginTabBtn = document.getElementById('login-tab-btn');
+    const registerTabBtn = document.getElementById('register-tab-btn');
+    const loginBtn = document.getElementById('login-btn');
+    const registerBtn = document.getElementById('register-btn');
+    const logoutBtn = document.getElementById('logout-btn');
+    const addTransactionBtn = document.getElementById('add-transaction-btn');
+    
+    // Fungsi untuk menampilkan loading
+    function showLoading(button) {
+      const spinner = document.createElement('div');
+      spinner.className = 'loading-spinner';
+      button.disabled = true;
+      button.querySelector('span').style.opacity = '0.7';
+      button.appendChild(spinner);
+    }
+    
+    function hideLoading(button) {
+      button.disabled = false;
+      button.querySelector('span').style.opacity = '1';
+      const spinner = button.querySelector('.loading-spinner');
+      if (spinner) spinner.remove();
+    }
+    
+    // Fungsi untuk beralih halaman
+    function showPage(pageId) {
+      document.querySelectorAll('.page').forEach(page => {
+        page.classList.remove('active-page');
+      });
+      document.getElementById(pageId).classList.add('active-page');
+    }
+    
+    // Fungsi untuk memuat data user
+    async function loadUserData() {
+      try {
+        const user = await account.get();
+        document.getElementById('user-name').textContent = user.name;
+        document.getElementById('user-email').textContent = user.email;
+        document.getElementById('user-initial').textContent = user.name.charAt(0).toUpperCase();
+      } catch (error) {
+        console.error('Gagal memuat data user:', error);
+      }
+    }
+    
+    // Fungsi untuk memuat transaksi
+    async function loadTransactions() {
+      try {
+        const transactions = await databases.listDocuments(
+          DB_ID,
+          COLLECTION_ID,
+          [Query.orderDesc('$createdAt')]
+        );
         
-        <div class="solana-card bg-gradient-to-br from-purple-900/30 to-green-900/20 rounded-xl p-6">
-          <h3 class="font-medium mb-2">Total Saldo</h3>
-          <p id="total-saldo" class="text-3xl font-bold font-mono">Rp 0</p>
-          <div class="flex justify-between mt-4 text-sm">
-            <div>
-              <p class="text-gray-400">Pemasukan</p>
-              <p id="total-masuk" class="text-green-400 font-mono">Rp 0</p>
-            </div>
-            <div>
-              <p class="text-gray-400">Pengeluaran</p>
-              <p id="total-keluar" class="text-red-400 font-mono">Rp 0</p>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <div class="lg:col-span-2 space-y-6">
-        <div class="solana-card bg-gray-900/50 rounded-xl p-6">
-          <div class="flex justify-between items-center mb-6">
-            <h2 class="text-xl font-semibold">Kas & Transaksi</h2>
-            <button id="add-transaction-btn" class="px-4 py-2 bg-gradient-to-r from-purple-600 to-green-500 rounded-lg text-sm">+ Tambah Transaksi</button>
-          </div>
-
-          <form id="transaction-form" class="hidden space-y-4 mb-6">
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+        let totalIncome = 0;
+        let totalExpense = 0;
+        
+        const transactionsHTML = transactions.documents.map(transaction => {
+          const amount = parseInt(transaction.amount);
+          
+          if (transaction.type === 'masuk') {
+            totalIncome += amount;
+          } else {
+            totalExpense += amount;
+          }
+          
+          return `
+            <div class="bg-gray-800 p-3 rounded-lg flex justify-between items-center 
+              ${transaction.type === 'masuk' ? 'border-l-4 border-green-500' : 'border-l-4 border-red-500'}">
               <div>
-                <label class="block text-sm mb-1">Jenis</label>
-                <select id="transaction-type" class="w-full px-4 py-2 bg-gray-800/50 border border-gray-700 rounded-lg">
-                  <option value="masuk">Kas Masuk</option>
-                  <option value="keluar">Kas Keluar</option>
-                </select>
+                <div class="font-medium">${transaction.description}</div>
+                <div class="text-sm text-gray-400">
+                  ${new Date(transaction.$createdAt).toLocaleDateString('id-ID')}
+                </div>
               </div>
-              <div>
-                <label class="block text-sm mb-1">Jumlah (Rp)</label>
-                <input type="number" id="transaction-amount" class="w-full px-4 py-2 bg-gray-800/50 border border-gray-700 rounded-lg" min="1">
+              <div class="${transaction.type === 'masuk' ? 'text-green-400' : 'text-red-400'} font-mono">
+                ${transaction.type === 'masuk' ? '+' : '-'}Rp ${amount.toLocaleString('id-ID')}
               </div>
             </div>
-            <div>
-              <label class="block text-sm mb-1">Keterangan</label>
-              <input type="text" id="transaction-desc" class="w-full px-4 py-2 bg-gray-800/50 border border-gray-700 rounded-lg" placeholder="Contoh: Pembayaran iuran">
-            </div>
-            <div class="flex justify-end space-x-3">
-              <button type="button" id="cancel-transaction-btn" class="px-4 py-2 bg-gray-700/50 hover:bg-gray-600/50 rounded-lg">Batal</button>
-              <button type="submit" class="px-4 py-2 bg-gradient-to-r from-purple-600 to-green-500 hover:opacity-90 rounded-lg">Simpan</button>
-            </div>
-          </form>
-
-          <div id="transactions-list" class="space-y-3">
-            <p class="text-center py-10 text-gray-500">Memuat data transaksi...</p>
-          </div>
-        </div>
-      </div>
-    </div>
-  </main>
-</div>
-
-<script type="module">
-  // Import Appwrite SDK
-  const { Client, Account, Databases, Query } = Appwrite;
-
-  // Konfigurasi Appwrite
-  const client = new Client();
-  client
-    .setEndpoint('https://fra.cloud.appwrite.io/v1')
-    .setProject('686f8911000c95bfb037');
-  
-  const account = new Account(client);
-  const databases = new Databases(client);
-  
-  // Database dan Collection ID
-  const DB_ID = 'kas_qc_shift';
-  const COLLECTION_ID = 'transactions';
-
-  // DOM Elements
-  const loginTab = document.getElementById('login-tab');
-  const registerTab = document.getElementById('register-tab');
-  const loginForm = document.getElementById('login-form');
-  const registerForm = document.getElementById('register-form');
-  const logoutBtn = document.getElementById('logout-btn');
-  const addTransactionBtn = document.getElementById('add-transaction-btn');
-  const cancelTransactionBtn = document.getElementById('cancel-transaction-btn');
-  const transactionForm = document.getElementById('transaction-form');
-
-  // Tab login/register
-  loginTab.addEventListener('click', () => {
-    loginForm.classList.remove('hidden');
-    registerForm.classList.add('hidden');
-    loginTab.classList.add('bg-gray-800/50', 'text-purple-400');
-    loginTab.classList.remove('text-gray-400', 'hover:bg-gray-800/30');
-    registerTab.classList.remove('bg-gray-800/50', 'text-purple-400');
-    registerTab.classList.add('text-gray-400', 'hover:bg-gray-800/30');
-    clearErrors();
-  });
-
-  registerTab.addEventListener('click', () => {
-    registerForm.classList.remove('hidden');
-    loginForm.classList.add('hidden');
-    registerTab.classList.add('bg-gray-800/50', 'text-purple-400');
-    registerTab.classList.remove('text-gray-400', 'hover:bg-gray-800/30');
-    loginTab.classList.remove('bg-gray-800/50', 'text-purple-400');
-    loginTab.classList.add('text-gray-400', 'hover:bg-gray-800/30');
-    clearErrors();
-  });
-
-  function clearErrors() {
-    document.querySelectorAll('.error-message').forEach(el => el.textContent = '');
-  }
-
-  function showLoading(button) {
-    const spinner = document.createElement('div');
-    spinner.className = 'loading-spinner';
-    button.disabled = true;
-    button.querySelector('span').style.opacity = '0.5';
-    button.appendChild(spinner);
-  }
-
-  function hideLoading(button) {
-    button.disabled = false;
-    button.querySelector('span').style.opacity = '1';
-    const spinner = button.querySelector('.loading-spinner');
-    if (spinner) spinner.remove();
-  }
-
-  // Validasi email
-  function validateEmail(email) {
-    const re = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    return re.test(String(email).toLowerCase());
-  }
-
-  // Login
-  loginForm.addEventListener('submit', async (e) => {
-    e.preventDefault();
-    const email = document.getElementById('login-email').value.trim();
-    const password = document.getElementById('login-password').value.trim();
-    const loginSubmit = document.getElementById('login-submit');
-    const loginError = document.getElementById('login-error');
-    
-    // Validasi
-    let isValid = true;
-    clearErrors();
-    
-    if (!email) {
-      document.getElementById('login-email-error').textContent = 'Email harus diisi';
-      isValid = false;
-    } else if (!validateEmail(email)) {
-      document.getElementById('login-email-error').textContent = 'Email tidak valid';
-      isValid = false;
+          `;
+        }).join('');
+        
+        document.getElementById('transactions-list').innerHTML = transactionsHTML || 
+          '<div class="text-center py-10 text-gray-500">Tidak ada transaksi</div>';
+        
+        document.getElementById('total-saldo').textContent = 
+          `Rp ${(totalIncome - totalExpense).toLocaleString('id-ID')}`;
+        document.getElementById('total-income').textContent = `Rp ${totalIncome.toLocaleString('id-ID')}`;
+        document.getElementById('total-expense').textContent = `Rp ${totalExpense.toLocaleString('id-ID')}`;
+        
+      } catch (error) {
+        console.error('Gagal memuat transaksi:', error);
+        document.getElementById('transactions-list').innerHTML = 
+          '<div class="text-center py-10 text-red-400">Gagal memuat transaksi</div>';
+      }
     }
     
-    if (!password) {
-      document.getElementById('login-password-error').textContent = 'Password harus diisi';
-      isValid = false;
-    } else if (password.length < 8) {
-      document.getElementById('login-password-error').textContent = 'Password minimal 8 karakter';
-      isValid = false;
-    }
+    // Event Listeners
+    loginTabBtn.addEventListener('click', () => {
+      loginForm.classList.remove('hidden');
+      registerForm.classList.add('hidden');
+      loginTabBtn.classList.add('bg-gray-700');
+      registerTabBtn.classList.remove('bg-gray-700');
+    });
     
-    if (!isValid) return;
+    registerTabBtn.addEventListener('click', () => {
+      registerForm.classList.remove('hidden');
+      loginForm.classList.add('hidden');
+      registerTabBtn.classList.add('bg-gray-700');
+      loginTabBtn.classList.remove('bg-gray-700');
+    });
     
-    try {
-      showLoading(loginSubmit);
-      loginError.textContent = '';
+    loginBtn.addEventListener('click', async () => {
+      const email = document.getElementById('login-email').value;
+      const password = document.getElementById('login-password').value;
+      const errorElement = document.getElementById('login-error');
       
-      await account.createEmailSession(email, password);
-      showPage('dashboard-page');
-      await loadDashboard();
-    } catch (err) {
-      console.error('Login error:', err);
-      loginError.textContent = 'Login gagal. Periksa email dan password Anda.';
-    } finally {
-      hideLoading(loginSubmit);
-    }
-  });
-
-  // Register
-  registerForm.addEventListener('submit', async (e) => {
-    e.preventDefault();
-    const name = document.getElementById('register-name').value.trim();
-    const email = document.getElementById('register-email').value.trim();
-    const password = document.getElementById('register-password').value.trim();
-    const registerSubmit = document.getElementById('register-submit');
-    const registerError = document.getElementById('register-error');
-    
-    // Validasi
-    let isValid = true;
-    clearErrors();
-    
-    if (!name) {
-      document.getElementById('register-name-error').textContent = 'Nama harus diisi';
-      isValid = false;
-    }
-    
-    if (!email) {
-      document.getElementById('register-email-error').textContent = 'Email harus diisi';
-      isValid = false;
-    } else if (!validateEmail(email)) {
-      document.getElementById('register-email-error').textContent = 'Email tidak valid';
-      isValid = false;
-    }
-    
-    if (!password) {
-      document.getElementById('register-password-error').textContent = 'Password harus diisi';
-      isValid = false;
-    } else if (password.length < 8) {
-      document.getElementById('register-password-error').textContent = 'Password minimal 8 karakter';
-      isValid = false;
-    }
-    
-    if (!isValid) return;
-    
-    try {
-      showLoading(registerSubmit);
-      registerError.textContent = '';
+      if (!email || !password) {
+        errorElement.textContent = 'Email dan password harus diisi';
+        return;
+      }
       
-      await account.create('unique()', email, password, name);
-      await account.createEmailSession(email, password);
-      showPage('dashboard-page');
-      await loadDashboard();
-    } catch (err) {
-      console.error('Register error:', err);
-      registerError.textContent = err.message || 'Registrasi gagal. Email mungkin sudah digunakan.';
-    } finally {
-      hideLoading(registerSubmit);
-    }
-  });
-
-  // Logout
-  logoutBtn.addEventListener('click', async () => {
-    try {
-      await account.deleteSession('current');
-      showPage('auth-page');
-      // Reset form
-      loginForm.reset();
-      registerForm.reset();
-      clearErrors();
-    } catch (err) {
-      console.error('Logout error:', err);
-      alert('Logout gagal: ' + err.message);
-    }
-  });
-
-  function showPage(id) {
-    document.querySelectorAll('.page').forEach(p => p.classList.remove('active-page'));
-    document.getElementById(id).classList.add('active-page');
-  }
-
-  // Fungsi untuk memuat dashboard
-  async function loadDashboard() {
-    try {
-      // Dapatkan info user
-      const user = await account.get();
-      document.getElementById('user-name').textContent = user.name || user.email;
-      document.getElementById('user-email').textContent = user.email;
-      document.getElementById('user-initial').textContent = (user.name || user.email).charAt(0).toUpperCase();
-
-      // Dapatkan daftar transaksi
-      const response = await databases.listDocuments(
-        DB_ID, 
-        COLLECTION_ID,
-        [
-          Query.equal('userId', user.$id),
-          Query.orderDesc('$createdAt')
-        ]
-      );
-      
-      const transactions = response.documents;
-      renderTransactions(transactions);
-      calculateBalance(transactions);
-      
-    } catch (err) {
-      console.error('Error loading dashboard:', err);
-      // Jika session tidak valid, logout
-      await account.deleteSession('current');
-      showPage('auth-page');
-    }
-  }
-
-  function renderTransactions(transactions) {
-    const transactionsList = document.getElementById('transactions-list');
-    
-    if (transactions.length === 0) {
-      transactionsList.innerHTML = '<p class="text-center py-10 text-gray-500">Belum ada transaksi.</p>';
-      return;
-    }
-    
-    transactionsList.innerHTML = transactions.map(tx => `
-      <div class="flex justify-between p-3 ${tx.type === 'masuk' ? 'bg-green-900/20' : 'bg-red-900/20'} rounded-lg border-l-4 ${tx.type === 'masuk' ? 'border-green-500' : 'border-red-500'}">
-        <div>
-          <p class="font-medium">${tx.description}</p>
-          <p class="text-sm text-gray-400">${new Date(tx.$createdAt).toLocaleDateString('id-ID', { 
-            day: 'numeric', 
-            month: 'long', 
-            year: 'numeric',
-            hour: '2-digit',
-            minute: '2-digit'
-          })}</p>
-        </div>
-        <p class="font-mono ${tx.type === 'masuk' ? 'text-green-400' : 'text-red-400'}">
-          ${tx.type === 'masuk' ? '+' : '-'}Rp ${parseInt(tx.amount).toLocaleString('id-ID')}
-        </p>
-      </div>
-    `).join('');
-  }
-
-  function calculateBalance(transactions) {
-    let totalMasuk = 0;
-    let totalKeluar = 0;
-    
-    transactions.forEach(tx => {
-      const amount = parseInt(tx.amount);
-      if (tx.type === 'masuk') {
-        totalMasuk += amount;
-      } else {
-        totalKeluar += amount;
+      try {
+        showLoading(loginBtn);
+        errorElement.textContent = '';
+        
+        await account.createEmailSession(email, password);
+        await loadUserData();
+        await loadTransactions();
+        showPage('dashboard-page');
+      } catch (error) {
+        console.error('Login error:', error);
+        errorElement.textContent = error.message || 'Login gagal. Periksa email dan password Anda.';
+      } finally {
+        hideLoading(loginBtn);
       }
     });
     
-    const saldo = totalMasuk - totalKeluar;
+    registerBtn.addEventListener('click', async () => {
+      const name = document.getElementById('register-name').value;
+      const email = document.getElementById('register-email').value;
+      const password = document.getElementById('register-password').value;
+      const errorElement = document.getElementById('register-error');
+      
+      if (!name || !email || !password) {
+        errorElement.textContent = 'Semua field harus diisi';
+        return;
+      }
+      
+      if (password.length < 8) {
+        errorElement.textContent = 'Password minimal 8 karakter';
+        return;
+      }
+      
+      try {
+        showLoading(registerBtn);
+        errorElement.textContent = '';
+        
+        await account.create(ID.unique(), email, password, name);
+        await account.createEmailSession(email, password);
+        await loadUserData();
+        await loadTransactions();
+        showPage('dashboard-page');
+      } catch (error) {
+        console.error('Register error:', error);
+        errorElement.textContent = error.message || 'Registrasi gagal. Email mungkin sudah digunakan.';
+      } finally {
+        hideLoading(registerBtn);
+      }
+    });
     
-    document.getElementById('total-saldo').textContent = 'Rp ' + saldo.toLocaleString('id-ID');
-    document.getElementById('total-masuk').textContent = 'Rp ' + totalMasuk.toLocaleString('id-ID');
-    document.getElementById('total-keluar').textContent = 'Rp ' + totalKeluar.toLocaleString('id-ID');
-  }
-
-  // Form transaksi
-  addTransactionBtn.addEventListener('click', () => {
-    transactionForm.classList.remove('hidden');
-    addTransactionBtn.classList.add('hidden');
-  });
-
-  cancelTransactionBtn.addEventListener('click', () => {
-    transactionForm.classList.add('hidden');
-    addTransactionBtn.classList.remove('hidden');
-    transactionForm.reset();
-  });
-
-  transactionForm.addEventListener('submit', async (e) => {
-    e.preventDefault();
-    const amount = parseInt(document.getElementById('transaction-amount').value);
-    const desc = document.getElementById('transaction-desc').value.trim();
-    const type = document.getElementById('transaction-type').value;
-
-    if (!amount || amount <= 0 || !desc) {
-      alert('Isi semua field dengan benar');
-      return;
-    }
-
-    try {
-      const user = await account.get();
+    logoutBtn.addEventListener('click', async () => {
+      try {
+        await account.deleteSession('current');
+        showPage('auth-page');
+        // Reset form
+        document.getElementById('login-email').value = '';
+        document.getElementById('login-password').value = '';
+        document.getElementById('register-name').value = '';
+        document.getElementById('register-email').value = '';
+        document.getElementById('register-password').value = '';
+      } catch (error) {
+        console.error('Logout error:', error);
+        alert('Logout gagal: ' + error.message);
+      }
+    });
+    
+    addTransactionBtn.addEventListener('click', async () => {
+      const type = document.getElementById('transaction-type').value;
+      const amount = document.getElementById('transaction-amount').value;
+      const desc = document.getElementById('transaction-desc').value;
       
-      await databases.createDocument(
-        DB_ID, 
-        COLLECTION_ID, 
-        'unique()', 
-        {
-          type,
-          amount,
-          description: desc,
-          userId: user.$id,
-          userName: user.name
-        }
-      );
-
-      document.getElementById('transaction-form').reset();
-      document.getElementById('transaction-form').classList.add('hidden');
-      document.getElementById('add-transaction-btn').classList.remove('hidden');
+      if (!amount || !desc) {
+        alert('Jumlah dan keterangan harus diisi');
+        return;
+      }
       
-      // Refresh data
-      await loadDashboard();
-    } catch (err) {
-      console.error('Error creating transaction:', err);
-      alert('Gagal menyimpan transaksi: ' + err.message);
+      try {
+        const user = await account.get();
+        
+        await databases.createDocument(
+          DB_ID,
+          COLLECTION_ID,
+          ID.unique(),
+          {
+            type,
+            amount: parseInt(amount),
+            description: desc,
+            userId: user.$id,
+            userName: user.name
+          }
+        );
+        
+        // Reset form
+        document.getElementById('transaction-amount').value = '';
+        document.getElementById('transaction-desc').value = '';
+        
+        // Refresh data
+        await loadTransactions();
+        
+        alert('Transaksi berhasil ditambahkan');
+      } catch (error) {
+        console.error('Error adding transaction:', error);
+        alert('Gagal menambahkan transaksi: ' + error.message);
+      }
+    });
+    
+    // Cek status login saat halaman dimuat
+    async function initApp() {
+      try {
+        await account.get();
+        await loadUserData();
+        await loadTransactions();
+        showPage('dashboard-page');
+      } catch (error) {
+        showPage('auth-page');
+      }
     }
-  });
-
-  // Auto Load
-  (async () => {
-    try {
-      await account.get();
-      showPage('dashboard-page');
-      await loadDashboard();
-    } catch {
-      showPage('auth-page');
-    }
-  })();
-</script>
-
+    
+    // Jalankan aplikasi
+    document.addEventListener('DOMContentLoaded', initApp);
+  </script>
 </body>
 </html>
