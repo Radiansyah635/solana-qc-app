@@ -1,404 +1,280 @@
 <!DOCTYPE html>
 <html lang="id">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Kas QC Shift</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <script src="https://cdn.jsdelivr.net/npm/appwrite@10.0.0"></script>
   <style>
-    body {
-      background: linear-gradient(to bottom, #000000, #0f0f0f);
-      min-height: 100vh;
-    }
-    .page {
-      display: none;
-    }
-    .active-page {
-      display: block;
-    }
-    .solana-card {
-      backdrop-filter: blur(10px);
-      border: 1px solid rgba(168, 85, 247, 0.3);
-    }
+    body { background: linear-gradient(to bottom, #000000, #0f0f0f); min-height: 100vh; }
+    .page { display: none; }
+    .active-page { display: block; }
+    .solana-card { backdrop-filter: blur(10px); border: 1px solid rgba(168, 85, 247, 0.3); }
   </style>
 </head>
 <body class="text-gray-100 font-sans">
-  <div id="auth-page" class="page active-page p-4">
-    <div class="max-w-md mx-auto mt-12">
-      <div class="text-center mb-8">
-        <h1 class="text-3xl font-bold bg-gradient-to-r from-purple-400 to-green-400 bg-clip-text text-transparent mb-2">
-          Kas QC Shift
-        </h1>
+
+<!-- AUTH PAGE -->
+<div id="auth-page" class="page active-page p-4">
+  <div class="max-w-md mx-auto mt-12">
+    <div class="text-center mb-8">
+      <h1 class="text-3xl font-bold bg-gradient-to-r from-purple-400 to-green-400 bg-clip-text text-transparent mb-2">
+        Kas QC Shift
+      </h1>
+    </div>
+
+    <div class="solana-card bg-gray-900/50 rounded-xl overflow-hidden mb-6">
+      <div class="flex border-b border-gray-800">
+        <button id="login-tab" class="flex-1 py-4 font-medium bg-gray-800/50 text-purple-400">Login</button>
+        <button id="register-tab" class="flex-1 py-4 font-medium text-gray-400 hover:bg-gray-800/30">Register</button>
       </div>
-      
-      <div class="solana-card bg-gray-900/50 rounded-xl overflow-hidden mb-6">
-        <div class="flex border-b border-gray-800">
-          <button id="login-tab" class="flex-1 py-4 font-medium bg-gray-800/50 text-purple-400">
-            Login
-          </button>
-          <button id="register-tab" class="flex-1 py-4 font-medium text-gray-400 hover:bg-gray-800/30">
-            Register
-          </button>
+
+      <form id="login-form" class="p-6">
+        <div class="space-y-4">
+          <div>
+            <label class="block text-sm mb-1 text-gray-300">Email</label>
+            <input type="email" id="login-email" required class="w-full px-4 py-3 bg-gray-800/50 border border-gray-700 rounded-lg focus:ring-2 focus:ring-purple-500 focus:outline-none">
+          </div>
+          <div>
+            <label class="block text-sm mb-1 text-gray-300">Password</label>
+            <input type="password" id="login-password" required class="w-full px-4 py-3 bg-gray-800/50 border border-gray-700 rounded-lg focus:ring-2 focus:ring-purple-500 focus:outline-none">
+          </div>
+          <button type="submit" class="w-full py-3 bg-gradient-to-r from-purple-600 to-green-500 hover:opacity-90 rounded-lg font-medium">Masuk</button>
         </div>
+      </form>
 
-        <form id="login-form" class="p-6">
-          <div class="space-y-4">
-            <div>
-              <label class="block text-sm mb-1 text-gray-300">Email</label>
-              <input type="email" id="login-email" required 
-                class="w-full px-4 py-3 bg-gray-800/50 border border-gray-700 rounded-lg focus:ring-2 focus:ring-purple-500 focus:outline-none">
-            </div>
-            <div>
-              <label class="block text-sm mb-1 text-gray-300">Password</label>
-              <input type="password" id="login-password" required
-                class="w-full px-4 py-3 bg-gray-800/50 border border-gray-700 rounded-lg focus:ring-2 focus:ring-purple-500 focus:outline-none">
-            </div>
-            <button type="submit" class="w-full py-3 bg-gradient-to-r from-purple-600 to-green-500 hover:opacity-90 rounded-lg font-medium">
-              Masuk
-            </button>
+      <form id="register-form" class="p-6 hidden">
+        <div class="space-y-4">
+          <div>
+            <label class="block text-sm mb-1 text-gray-300">Nama Lengkap</label>
+            <input type="text" id="register-name" required class="w-full px-4 py-3 bg-gray-800/50 border border-gray-700 rounded-lg focus:ring-2 focus:ring-purple-500 focus:outline-none">
           </div>
-        </form>
-
-        <form id="register-form" class="p-6 hidden">
-          <div class="space-y-4">
-            <div>
-              <label class="block text-sm mb-1 text-gray-300">Nama Lengkap</label>
-              <input type="text" id="register-name" required
-                class="w-full px-4 py-3 bg-gray-800/50 border border-gray-700 rounded-lg focus:ring-2 focus:ring-purple-500 focus:outline-none">
-            </div>
-            <div>
-              <label class="block text-sm mb-1 text-gray-300">Email</label>
-              <input type="email" id="register-email" required
-                class="w-full px-4 py-3 bg-gray-800/50 border border-gray-700 rounded-lg focus:ring-2 focus:ring-purple-500 focus:outline-none">
-            </div>
-            <div>
-              <label class="block text-sm mb-1 text-gray-300">Password</label>
-              <input type="password" id="register-password" required
-                class="w-full px-4 py-3 bg-gray-800/50 border border-gray-700 rounded-lg focus:ring-2 focus:ring-purple-500 focus:outline-none">
-            </div>
-            <button type="submit" class="w-full py-3 bg-gradient-to-r from-green-600 to-cyan-500 hover:opacity-90 rounded-lg font-medium">
-              Daftar
-            </button>
+          <div>
+            <label class="block text-sm mb-1 text-gray-300">Email</label>
+            <input type="email" id="register-email" required class="w-full px-4 py-3 bg-gray-800/50 border border-gray-700 rounded-lg focus:ring-2 focus:ring-purple-500 focus:outline-none">
           </div>
-        </form>
-      </div>
+          <div>
+            <label class="block text-sm mb-1 text-gray-300">Password</label>
+            <input type="password" id="register-password" required class="w-full px-4 py-3 bg-gray-800/50 border border-gray-700 rounded-lg focus:ring-2 focus:ring-purple-500 focus:outline-none">
+          </div>
+          <button type="submit" class="w-full py-3 bg-gradient-to-r from-green-600 to-cyan-500 hover:opacity-90 rounded-lg font-medium">Daftar</button>
+        </div>
+      </form>
     </div>
   </div>
+</div>
 
-  <div id="dashboard-page" class="page">
-    <nav class="bg-black/80 p-4 border-b border-purple-900/50 sticky top-0 z-50">
-      <div class="container mx-auto flex justify-between items-center">
-        <h1 class="text-2xl font-bold bg-gradient-to-r from-purple-400 to-green-400 bg-clip-text text-transparent">
-          Kas QC Shift
-        </h1>
-        <button id="logout-btn" class="px-4 py-2 bg-red-600/80 hover:bg-red-500/90 rounded-lg text-sm">
-          Logout
-        </button>
-      </div>
-    </nav>
+<!-- DASHBOARD PAGE -->
+<div id="dashboard-page" class="page">
+  <nav class="bg-black/80 p-4 border-b border-purple-900/50 sticky top-0 z-50">
+    <div class="container mx-auto flex justify-between items-center">
+      <h1 class="text-2xl font-bold bg-gradient-to-r from-purple-400 to-green-400 bg-clip-text text-transparent">Kas QC Shift</h1>
+      <button id="logout-btn" class="px-4 py-2 bg-red-600/80 hover:bg-red-500/90 rounded-lg text-sm">Logout</button>
+    </div>
+  </nav>
 
-    <main class="container mx-auto p-4 pb-20">
-      <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        <div class="lg:col-span-1 space-y-6">
-          <div class="solana-card bg-gray-900/50 rounded-xl p-6">
-            <div class="flex items-center space-x-4">
-              <div class="w-12 h-12 rounded-full bg-gradient-to-r from-purple-600 to-green-500 flex items-center justify-center text-xl font-bold">
-                <span id="user-initial">U</span>
-              </div>
-              <div>
-                <h3 id="user-name" class="font-medium">User</h3>
-                <p id="user-role" class="text-sm text-gray-400">QC Team</p>
-              </div>
+  <main class="container mx-auto p-4 pb-20">
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+      <div class="lg:col-span-1 space-y-6">
+        <div class="solana-card bg-gray-900/50 rounded-xl p-6">
+          <div class="flex items-center space-x-4">
+            <div class="w-12 h-12 rounded-full bg-gradient-to-r from-purple-600 to-green-500 flex items-center justify-center text-xl font-bold">
+              <span id="user-initial">U</span>
             </div>
-          </div>
-
-          <div class="solana-card bg-gradient-to-br from-purple-900/30 to-green-900/20 rounded-xl p-6">
-            <h3 class="font-medium mb-2">Total Saldo</h3>
-            <p id="total-saldo" class="text-3xl font-bold font-mono">Rp 0</p>
+            <div>
+              <h3 id="user-name" class="font-medium">User</h3>
+              <p id="user-role" class="text-sm text-gray-400">QC Team</p>
+            </div>
           </div>
         </div>
+        <div class="solana-card bg-gradient-to-br from-purple-900/30 to-green-900/20 rounded-xl p-6">
+          <h3 class="font-medium mb-2">Total Saldo</h3>
+          <p id="total-saldo" class="text-3xl font-bold font-mono">Rp 0</p>
+        </div>
+      </div>
 
-        <div class="lg:col-span-2 space-y-6">
-          <div class="solana-card bg-gray-900/50 rounded-xl p-6">
-            <div class="flex justify-between items-center mb-6">
-              <h2 class="text-xl font-semibold">Kas & Transaksi</h2>
-              <button id="add-transaction-btn" class="px-4 py-2 bg-gradient-to-r from-purple-600 to-green-500 rounded-lg text-sm">
-                + Tambah Transaksi
-              </button>
-            </div>
-            
-            <form id="transaction-form" class="hidden space-y-4 mb-6">
-              <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div>
-                  <label class="block text-sm mb-1">Jenis</label>
-                  <select id="transaction-type" class="w-full px-4 py-2 bg-gray-800/50 border border-gray-700 rounded-lg">
-                    <option value="masuk">Kas Masuk</option>
-                    <option value="keluar">Kas Keluar</option>
-                  </select>
-                </div>
-                <div>
-                  <label class="block text-sm mb-1">Jumlah (Rp)</label>
-                  <input type="number" id="transaction-amount" class="w-full px-4 py-2 bg-gray-800/50 border border-gray-700 rounded-lg" min="1">
-                </div>
+      <div class="lg:col-span-2 space-y-6">
+        <div class="solana-card bg-gray-900/50 rounded-xl p-6">
+          <div class="flex justify-between items-center mb-6">
+            <h2 class="text-xl font-semibold">Kas & Transaksi</h2>
+            <button id="add-transaction-btn" class="px-4 py-2 bg-gradient-to-r from-purple-600 to-green-500 rounded-lg text-sm">+ Tambah Transaksi</button>
+          </div>
+
+          <form id="transaction-form" class="hidden space-y-4 mb-6">
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <label class="block text-sm mb-1">Jenis</label>
+                <select id="transaction-type" class="w-full px-4 py-2 bg-gray-800/50 border border-gray-700 rounded-lg">
+                  <option value="masuk">Kas Masuk</option>
+                  <option value="keluar">Kas Keluar</option>
+                </select>
               </div>
               <div>
-                <label class="block text-sm mb-1">Keterangan</label>
-                <input type="text" id="transaction-desc" class="w-full px-4 py-2 bg-gray-800/50 border border-gray-700 rounded-lg">
+                <label class="block text-sm mb-1">Jumlah (Rp)</label>
+                <input type="number" id="transaction-amount" class="w-full px-4 py-2 bg-gray-800/50 border border-gray-700 rounded-lg" min="1">
               </div>
-              <div class="flex justify-end space-x-3">
-                <button type="button" id="cancel-transaction-btn" class="px-4 py-2 bg-gray-700/50 hover:bg-gray-600/50 rounded-lg">
-                  Batal
-                </button>
-                <button type="submit" class="px-4 py-2 bg-gradient-to-r from-purple-600 to-green-500 hover:opacity-90 rounded-lg">
-                  Simpan
-                </button>
-              </div>
-            </form>
-
-            <div id="transactions-list" class="space-y-3">
-              <p class="text-center py-10 text-gray-500">Memuat data transaksi...</p>
             </div>
+            <div>
+              <label class="block text-sm mb-1">Keterangan</label>
+              <input type="text" id="transaction-desc" class="w-full px-4 py-2 bg-gray-800/50 border border-gray-700 rounded-lg">
+            </div>
+            <div class="flex justify-end space-x-3">
+              <button type="button" id="cancel-transaction-btn" class="px-4 py-2 bg-gray-700/50 hover:bg-gray-600/50 rounded-lg">Batal</button>
+              <button type="submit" class="px-4 py-2 bg-gradient-to-r from-purple-600 to-green-500 hover:opacity-90 rounded-lg">Simpan</button>
+            </div>
+          </form>
+
+          <div id="transactions-list" class="space-y-3">
+            <p class="text-center py-10 text-gray-500">Memuat data transaksi...</p>
           </div>
         </div>
       </div>
-    </main>
-  </div>
+    </div>
+  </main>
+</div>
 
-  <script>
-    // =============================================
-    // KONFIGURASI APPWRITE
-    // =============================================
-    const client = new Appwrite.Client();
-    client
-      .setEndpoint('https://fra.cloud.appwrite.io/v1')
-      .setProject('686f8911000c95bfb037');
+<!-- SCRIPT -->
+<script>
+  // Konfigurasi Appwrite
+  const client = new Appwrite.Client();
+  client
+    .setEndpoint('https://fra.cloud.appwrite.io/v1')
+    .setProject('686f8911000c95bfb037')
+    .setKey('780dfd7504814989b99bfa4ca3fd1abe7f6230cc34e3734faf5485462293895f578a7023bbef7656331d372590599dbe3b05b26bd0800bc28fab4935487f9c550ff08395e8c7f49b5418a6818c310a3bc12066f535461191c71ecec2a09a969a74f1315cb4e0a8a41ec217f13a057c514014e3f29ee8f7819b821d5c2b0d1d2e'); // Ganti di sini
 
-    const account = new Appwrite.Account(client);
-    const databases = new Appwrite.Databases(client);
-    const storage = new Appwrite.Storage(client); // Unused in this context, but good to keep if needed later.
+  const account = new Appwrite.Account(client);
+  const databases = new Appwrite.Databases(client);
+  const DB_ID = 'kas_qc_shift';
+  const COLLECTION_ID = 'transactions';
 
-    const DB_ID = 'kas_qc_shift';
-    const COLLECTIONS = {
-      TRANSACTIONS: 'transactions',
-      // AGENDA: 'agenda', // Not used in this code, consider removing if truly not needed.
-      // POSTS: 'posts' // Not used in this code, consider removing if truly not needed.
-    };
-    // const BUCKET_ID = 'qc_files'; // Not used in this code, consider removing if truly not needed.
+  // Tab login/register
+  const loginTab = document.getElementById('login-tab');
+  const registerTab = document.getElementById('register-tab');
+  const loginForm = document.getElementById('login-form');
+  const registerForm = document.getElementById('register-form');
 
-    // =============================================
-    // MANAJEMEN HALAMAN
-    // =============================================
-    function showPage(pageId) {
-      document.querySelectorAll('.page').forEach(page => {
-        page.classList.remove('active-page');
-      });
-      document.getElementById(pageId).classList.add('active-page');
+  loginTab.addEventListener('click', () => {
+    loginForm.classList.remove('hidden');
+    registerForm.classList.add('hidden');
+  });
+
+  registerTab.addEventListener('click', () => {
+    registerForm.classList.remove('hidden');
+    loginForm.classList.add('hidden');
+  });
+
+  // Login
+  loginForm.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const email = document.getElementById('login-email').value;
+    const password = document.getElementById('login-password').value;
+
+    try {
+      await account.createEmailSession(email, password);
+      showPage('dashboard-page');
+      loadDashboard();
+    } catch (err) {
+      alert('Login gagal: ' + err.message);
     }
+  });
 
-    // =============================================
-    // FUNGSI AUTHENTIKASI
-    // =============================================
-    // Tab Switching
-    const loginTab = document.getElementById('login-tab');
-    const registerTab = document.getElementById('register-tab');
-    const loginForm = document.getElementById('login-form');
-    const registerForm = document.getElementById('register-form');
+  // Register
+  registerForm.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const name = document.getElementById('register-name').value;
+    const email = document.getElementById('register-email').value;
+    const password = document.getElementById('register-password').value;
 
-    function setActiveTab(activeTabElement, inactiveTabElement, activeFormElement, inactiveFormElement) {
-      activeFormElement.classList.remove('hidden');
-      inactiveFormElement.classList.add('hidden');
-
-      activeTabElement.classList.add('bg-gray-800/50', 'text-purple-400');
-      activeTabElement.classList.remove('text-gray-400');
-
-      inactiveTabElement.classList.add('text-gray-400');
-      inactiveTabElement.classList.remove('bg-gray-800/50', 'text-purple-400');
+    try {
+      await account.create('unique()', email, password, name);
+      await account.createEmailSession(email, password);
+      showPage('dashboard-page');
+      loadDashboard();
+    } catch (err) {
+      alert('Register gagal: ' + err.message);
     }
+  });
 
-    loginTab.addEventListener('click', () => {
-      setActiveTab(loginTab, registerTab, loginForm, registerForm);
-    });
+  // Logout
+  document.getElementById('logout-btn').addEventListener('click', async () => {
+    await account.deleteSession('current');
+    showPage('auth-page');
+  });
 
-    registerTab.addEventListener('click', () => {
-      setActiveTab(registerTab, loginTab, registerForm, loginForm);
-    });
+  function showPage(id) {
+    document.querySelectorAll('.page').forEach(p => p.classList.remove('active-page'));
+    document.getElementById(id).classList.add('active-page');
+  }
 
-    // Login
-    document.getElementById('login-form').addEventListener('submit', async (e) => {
-      e.preventDefault();
-      const email = document.getElementById('login-email').value;
-      const password = document.getElementById('login-password').value;
+  async function loadDashboard() {
+    const user = await account.get();
+    document.getElementById('user-name').textContent = user.name || user.email;
+    document.getElementById('user-initial').textContent = (user.name || user.email).charAt(0).toUpperCase();
 
-      try {
-        await account.createEmailSession(email, password);
-        showPage('dashboard-page');
-        loadDashboardData();
-      } catch (error) {
-        alert('Login gagal: ' + error.message);
-      }
-    });
-
-    // Register
-    document.getElementById('register-form').addEventListener('submit', async (e) => {
-      e.preventDefault();
-      const name = document.getElementById('register-name').value;
-      const email = document.getElementById('register-email').value;
-      const password = document.getElementById('register-password').value;
-
-      try {
-        await account.create('unique()', email, password, name);
-        await account.createEmailSession(email, password);
-        showPage('dashboard-page');
-        loadDashboardData();
-      } catch (error) {
-        alert('Registrasi gagal: ' + error.message);
-      }
-    });
-
-    // Logout
-    document.getElementById('logout-btn').addEventListener('click', async () => {
-      try {
-        await account.deleteSession('current');
-        showPage('auth-page');
-      } catch (error) {
-        console.error('Logout error:', error);
-        alert('Gagal logout. Silakan coba lagi.');
-      }
-    });
-
-    // =============================================
-    // FUNGSI DASHBOARD
-    // =============================================
-    async function loadDashboardData() {
-      try {
-        const user = await account.get();
-        updateUserInfo(user);
-        loadTransactions();
-      } catch (error) {
-        console.error('Failed to load dashboard:', error);
-        alert('Gagal memuat data dashboard. Silakan coba login ulang.');
-        showPage('auth-page'); // Redirect to login if dashboard data fails to load
-      }
-    }
-
-    function updateUserInfo(user) {
-      document.getElementById('user-name').textContent = user.name || user.email;
-      document.getElementById('user-initial').textContent = (user.name || user.email).charAt(0).toUpperCase();
-    }
-
-    // Transaksi
-    async function loadTransactions() {
-      const transactionsListContainer = document.getElementById('transactions-list');
-      transactionsListContainer.innerHTML = '<p class="text-center py-10 text-gray-500">Memuat data transaksi...</p>'; // Show loading message
-
-      try {
-        const response = await databases.listDocuments(DB_ID, COLLECTIONS.TRANSACTIONS);
-        renderTransactions(response.documents);
-        calculateBalance(response.documents);
-      } catch (error) {
-        console.error('Error loading transactions:', error);
-        transactionsListContainer.innerHTML = '<p class="text-center py-10 text-red-400">Gagal memuat transaksi. Silakan coba refresh.</p>';
-      }
-    }
-
-    function renderTransactions(transactions) {
-      const container = document.getElementById('transactions-list');
-      if (transactions.length === 0) {
-        container.innerHTML = '<p class="text-center py-10 text-gray-500">Belum ada transaksi.</p>';
-        return;
-      }
-      container.innerHTML = transactions.map(tx => `
-        <div class="flex justify-between items-center p-3 ${tx.type === 'masuk' ? 'bg-green-900/20' : 'bg-red-900/20'} rounded-lg border-l-4 ${tx.type === 'masuk' ? 'border-green-500' : 'border-red-500'}">
-          <div>
-            <p class="font-medium">${tx.description}</p>
-            <p class="text-sm text-gray-400">${new Date(tx.$createdAt).toLocaleDateString('id-ID', { day: '2-digit', month: 'short', year: 'numeric' })}</p>
-          </div>
-          <p class="${tx.type === 'masuk' ? 'text-green-400' : 'text-red-400'} font-mono text-lg font-bold">
-            ${tx.type === 'masuk' ? '+' : '-'}Rp ${parseInt(tx.amount).toLocaleString('id-ID')}
-          </p>
+    const res = await databases.listDocuments(DB_ID, COLLECTION_ID);
+    const list = res.documents.map(tx => `
+      <div class="flex justify-between p-3 ${tx.type === 'masuk' ? 'bg-green-900/20' : 'bg-red-900/20'} rounded-lg border-l-4 ${tx.type === 'masuk' ? 'border-green-500' : 'border-red-500'}">
+        <div>
+          <p class="font-medium">${tx.description}</p>
+          <p class="text-sm text-gray-400">${new Date(tx.$createdAt).toLocaleDateString()}</p>
         </div>
-      `).join('');
+        <p class="font-mono ${tx.type === 'masuk' ? 'text-green-400' : 'text-red-400'}">
+          ${tx.type === 'masuk' ? '+' : '-'}Rp ${parseInt(tx.amount).toLocaleString('id-ID')}
+        </p>
+      </div>`).join('');
+
+    document.getElementById('transactions-list').innerHTML = list || '<p class="text-center py-10 text-gray-500">Belum ada transaksi.</p>';
+
+    const saldo = res.documents.reduce((t, tx) => t + (tx.type === 'masuk' ? parseInt(tx.amount) : -parseInt(tx.amount)), 0);
+    document.getElementById('total-saldo').textContent = 'Rp ' + saldo.toLocaleString('id-ID');
+  }
+
+  document.getElementById('add-transaction-btn').addEventListener('click', () => {
+    document.getElementById('transaction-form').classList.remove('hidden');
+    document.getElementById('add-transaction-btn').classList.add('hidden');
+  });
+
+  document.getElementById('cancel-transaction-btn').addEventListener('click', () => {
+    document.getElementById('transaction-form').classList.add('hidden');
+    document.getElementById('add-transaction-btn').classList.remove('hidden');
+    document.getElementById('transaction-form').reset();
+  });
+
+  document.getElementById('transaction-form').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const amount = parseInt(document.getElementById('transaction-amount').value);
+    const desc = document.getElementById('transaction-desc').value.trim();
+    const type = document.getElementById('transaction-type').value;
+
+    if (!amount || amount <= 0 || !desc) return alert('Isi semua field dengan benar');
+
+    const user = await account.get();
+    await databases.createDocument(DB_ID, COLLECTION_ID, 'unique()', {
+      type,
+      amount,
+      description: desc,
+      userId: user.$id,
+      userName: user.name,
+    });
+
+    document.getElementById('transaction-form').reset();
+    document.getElementById('transaction-form').classList.add('hidden');
+    document.getElementById('add-transaction-btn').classList.remove('hidden');
+    loadDashboard();
+  });
+
+  // Auto Load
+  (async () => {
+    try {
+      await account.get();
+      showPage('dashboard-page');
+      loadDashboard();
+    } catch {
+      showPage('auth-page');
     }
+  })();
+</script>
 
-    function calculateBalance(transactions) {
-      let total = 0;
-      transactions.forEach(tx => {
-        total += tx.type === 'masuk' ? parseInt(tx.amount) : -parseInt(tx.amount);
-      });
-      document.getElementById('total-saldo').textContent = `Rp ${total.toLocaleString('id-ID')}`;
-    }
-
-    // Form Transaksi
-    const addTransactionBtn = document.getElementById('add-transaction-btn');
-    const cancelTransactionBtn = document.getElementById('cancel-transaction-btn');
-    const transactionForm = document.getElementById('transaction-form');
-    const transactionAmountInput = document.getElementById('transaction-amount');
-    const transactionDescInput = document.getElementById('transaction-desc');
-    const transactionTypeSelect = document.getElementById('transaction-type');
-
-
-    addTransactionBtn.addEventListener('click', () => {
-      transactionForm.classList.remove('hidden');
-      addTransactionBtn.classList.add('hidden');
-    });
-
-    cancelTransactionBtn.addEventListener('click', () => {
-      transactionForm.classList.add('hidden');
-      addTransactionBtn.classList.remove('hidden');
-      transactionForm.reset(); // Clear form on cancel
-    });
-
-    transactionForm.addEventListener('submit', async (e) => {
-      e.preventDefault();
-      const type = transactionTypeSelect.value;
-      const amount = parseInt(transactionAmountInput.value); // Parse as integer
-      const description = transactionDescInput.value.trim(); // Trim whitespace
-
-      if (isNaN(amount) || amount <= 0) {
-        alert('Jumlah harus angka positif.');
-        return;
-      }
-      if (!description) {
-        alert('Keterangan tidak boleh kosong.');
-        return;
-      }
-
-      try {
-        const user = await account.get(); // Fetch user again to ensure latest data
-
-        await databases.createDocument(DB_ID, COLLECTIONS.TRANSACTIONS, 'unique()', {
-          type,
-          amount: amount,
-          description,
-          userId: user.$id,
-          userName: user.name || user.email,
-          timestamp: new Date().toISOString() // Add a timestamp for better ordering/filtering if needed
-        });
-
-        transactionForm.reset();
-        transactionForm.classList.add('hidden');
-        addTransactionBtn.classList.remove('hidden');
-        loadTransactions();
-      } catch (error) {
-        console.error('Gagal menyimpan transaksi:', error);
-        alert('Gagal menyimpan transaksi: ' + (error.message || 'Terjadi kesalahan.'));
-      }
-    });
-
-    // =============================================
-    // INISIALISASI APLIKASI
-    // =============================================
-    (async () => {
-      try {
-        const user = await account.get();
-        showPage('dashboard-page');
-        loadDashboardData();
-      } catch (error) {
-        // If account.get() fails, it means no active session, so show auth page
-        showPage('auth-page');
-      }
-    })();
-  </script>
 </body>
-</html>
+  </html>
