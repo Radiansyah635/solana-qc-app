@@ -142,11 +142,10 @@
 
   const account = new Appwrite.Account(client);
   const databases = new Appwrite.Databases(client);
-  // Appwrite.Query diperlukan untuk Query
-  const Query = Appwrite.Query; 
+  const Query = Appwrite.Query; // Penting untuk filter data
   
   const DB_ID = 'kas_qc_shift'; // Ganti dengan ID Database Anda di Appwrite
-  const COLLECTION_ID = '686f9d48003931539ae5'; // Ganti dengan ID Koleksi Anda di Appwrite
+  const COLLECTION_ID = 'transactions'; // Ganti dengan ID Koleksi Anda di Appwrite
 
   // --- DOM Elements ---
   const authPage = document.getElementById('auth-page');
@@ -158,7 +157,6 @@
   const logoutBtn = document.getElementById('logout-btn');
   const userInitial = document.getElementById('user-initial');
   const userName = document.getElementById('user-name');
-  // const userRole = document.getElementById('user-role'); // Belum digunakan di kode
   const totalSaldo = document.getElementById('total-saldo');
   const transactionsList = document.getElementById('transactions-list');
   const addTransactionBtn = document.getElementById('add-transaction-btn');
@@ -199,7 +197,7 @@
     const password = document.getElementById('login-password').value;
 
     try {
-      // FIX: Menggunakan createEmailPasswordSession untuk Appwrite SDK v18+
+      // PERBAIKAN PENTING: Menggunakan createEmailPasswordSession
       await account.createEmailPasswordSession(email, password);
       showPage('dashboard-page');
       loadDashboard();
@@ -217,7 +215,7 @@
     const password = document.getElementById('register-password').value;
 
     try {
-      // FIX: Menggunakan Appwrite.ID.unique() karena SDK dimuat secara global
+      // PERBAIKAN PENTING: Menggunakan Appwrite.ID.unique()
       await account.create(Appwrite.ID.unique(), email, password, name);
       // Login otomatis setelah registrasi
       await account.createEmailPasswordSession(email, password);
@@ -254,7 +252,7 @@
       // Memuat transaksi
       const res = await databases.listDocuments(DB_ID, COLLECTION_ID, [
           Query.orderDesc("$createdAt"), // Urutkan dari terbaru
-          Query.equal("userId", user.$id) // Filter hanya transaksi user yang login
+          Query.equal("userid", user.$id) // PERBAIKAN: Filter berdasarkan 'userid' (huruf kecil 'i')
       ]);
 
       const list = res.documents.map(tx => `
@@ -276,7 +274,6 @@
 
     } catch (err) {
       console.error('Error loading dashboard:', err);
-      // Handle cases where user session might have expired on dashboard page
       if (err.code === 401) {
         alert('Sesi Anda telah berakhir. Silakan login kembali.');
         showPage('auth-page');
@@ -296,7 +293,9 @@
   cancelTransactionBtn.addEventListener('click', () => {
     transactionForm.classList.add('hidden');
     addTransactionBtn.classList.remove('hidden');
-    transactionForm.reset();
+    document.getElementById('transaction-amount').value = ''; // Reset amount
+    document.getElementById('transaction-desc').value = ''; // Reset description
+    document.getElementById('transaction-type').value = 'masuk'; // Reset type
   });
 
   transactionForm.addEventListener('submit', async (e) => {
@@ -305,7 +304,7 @@
     const desc = document.getElementById('transaction-desc').value.trim();
     const type = document.getElementById('transaction-type').value;
 
-    if (!amount || amount <= 0 || !desc) {
+    if (isNaN(amount) || amount <= 0 || !desc) {
       return alert('Isi semua field dengan benar (jumlah harus lebih dari 0).');
     }
 
@@ -319,16 +318,20 @@
           type,
           amount,
           description: desc,
-          userId: user.$id,
-          userName: user.name,
+          userid: user.$id, // PERBAIKAN: Menggunakan 'userid' sesuai atribut Appwrite
+          // userName: user.name, // Hapus atau tambahkan atribut 'userName' di Appwrite jika Anda ingin menyimpannya
         },
         // PENTING: Permissions untuk memastikan hanya user yang bisa membaca/menulis datanya
         [`read("user:${user.$id}")`, `write("user:${user.$id}")`]
       );
 
-      transactionForm.reset();
+      // Reset form dan sembunyikan
+      document.getElementById('transaction-amount').value = '';
+      document.getElementById('transaction-desc').value = '';
+      document.getElementById('transaction-type').value = 'masuk';
       transactionForm.classList.add('hidden');
       addTransactionBtn.classList.remove('hidden');
+      
       loadDashboard(); // Refresh dashboard setelah menambahkan transaksi
     } catch (err) {
       alert('Gagal menambahkan transaksi: ' + err.message);
@@ -343,8 +346,11 @@
       await account.get(); // Mencoba mendapatkan sesi user yang aktif
       showPage('dashboard-page');
       loadDashboard();
-    } catch {
-      showPage('auth-page'); // Jika tidak ada sesi, tampilkan halaman auth
+    } catch (err) {
+      // Jika account.get() gagal (misalnya 401 Unauthorized karena tidak ada sesi),
+      // maka tampilkan halaman autentikasi. Ini perilaku yang diharapkan.
+      // console.log("No active session, showing auth page.", err);
+      showPage('auth-page');
     }
   })();
 </script>
