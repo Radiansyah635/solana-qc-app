@@ -3,398 +3,125 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Kas QC Shift</title>
+  <title>Login Appwrite</title>
   <script src="https://cdn.jsdelivr.net/npm/appwrite@13.0.0/dist/appwrite.min.js"></script>
-  <script src="https://cdn.tailwindcss.com"></script>
   <style>
-    .page { display: none; }
-    .active-page { display: block; }
-    .loading-spinner {
-      border: 2px solid rgba(255,255,255,0.3);
-      border-radius: 50%;
-      border-top: 2px solid #fff;
-      width: 16px;
-      height: 16px;
-      animation: spin 1s linear infinite;
-      margin-left: 8px;
-    }
-    @keyframes spin {
-      0% { transform: rotate(0deg); }
-      100% { transform: rotate(360deg); }
-    }
+    body { font-family: sans-serif; max-width: 400px; margin: 50px auto; }
+    .hidden { display: none; }
+    input { width: 100%; padding: 8px; margin: 8px 0; }
+    button { padding: 10px 15px; margin-top: 10px; }
   </style>
 </head>
-<body class="bg-gray-900 text-white min-h-screen">
-  <!-- Auth Page -->
-  <div id="auth-page" class="page active-page p-4 max-w-md mx-auto mt-10">
-    <div class="bg-gray-800 rounded-lg shadow-lg overflow-hidden">
-      <div class="flex border-b border-gray-700">
-        <button id="login-tab-btn" class="flex-1 py-3 font-medium bg-gray-700">Login</button>
-        <button id="register-tab-btn" class="flex-1 py-3 font-medium">Register</button>
-      </div>
-      
-      <!-- Login Form -->
-      <div id="login-form" class="p-6">
-        <div class="mb-4">
-          <label class="block mb-2">Email</label>
-          <input type="email" id="login-email" class="w-full px-4 py-2 bg-gray-700 rounded">
-        </div>
-        <div class="mb-6">
-          <label class="block mb-2">Password</label>
-          <input type="password" id="login-password" class="w-full px-4 py-2 bg-gray-700 rounded">
-        </div>
-        <button id="login-btn" class="w-full bg-blue-600 hover:bg-blue-700 py-2 rounded flex justify-center items-center">
-          <span>Login</span>
-        </button>
-        <div id="login-error" class="mt-3 text-red-400 text-sm"></div>
-      </div>
-      
-      <!-- Register Form -->
-      <div id="register-form" class="p-6 hidden">
-        <div class="mb-4">
-          <label class="block mb-2">Nama Lengkap</label>
-          <input type="text" id="register-name" class="w-full px-4 py-2 bg-gray-700 rounded">
-        </div>
-        <div class="mb-4">
-          <label class="block mb-2">Email</label>
-          <input type="email" id="register-email" class="w-full px-4 py-2 bg-gray-700 rounded">
-        </div>
-        <div class="mb-6">
-          <label class="block mb-2">Password</label>
-          <input type="password" id="register-password" class="w-full px-4 py-2 bg-gray-700 rounded">
-        </div>
-        <button id="register-btn" class="w-full bg-green-600 hover:bg-green-700 py-2 rounded flex justify-center items-center">
-          <span>Register</span>
-        </button>
-        <div id="register-error" class="mt-3 text-red-400 text-sm"></div>
-      </div>
-    </div>
+<body>
+
+  <!-- Login Form -->
+  <div id="login-page">
+    <h2>Login</h2>
+    <input type="email" id="login-email" placeholder="Email">
+    <input type="password" id="login-password" placeholder="Password">
+    <button id="login-btn">Login</button>
+    <p><a href="#" id="go-register">Belum punya akun? Register</a></p>
+    <div id="login-error" style="color:red;"></div>
   </div>
-  
-  <!-- Dashboard Page -->
-  <div id="dashboard-page" class="page p-4">
-    <div class="flex justify-between items-center mb-6">
-      <h1 class="text-2xl font-bold">Kas QC Shift</h1>
-      <button id="logout-btn" class="bg-red-600 hover:bg-red-700 px-4 py-2 rounded">Logout</button>
-    </div>
-    
-    <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
-      <!-- User Info -->
-      <div class="bg-gray-800 p-4 rounded-lg">
-        <h2 class="text-lg mb-4">Profil User</h2>
-        <div class="flex items-center">
-          <div class="w-12 h-12 bg-blue-600 rounded-full flex items-center justify-center text-xl font-bold mr-3">
-            <span id="user-initial">U</span>
-          </div>
-          <div>
-            <div id="user-name" class="font-medium">Loading...</div>
-            <div id="user-email" class="text-sm text-gray-400">Loading...</div>
-          </div>
-        </div>
-      </div>
-      
-      <!-- Balance Info -->
-      <div class="bg-gray-800 p-4 rounded-lg">
-        <h2 class="text-lg mb-4">Saldo Kas</h2>
-        <div class="text-3xl font-bold mb-2" id="total-saldo">Rp 0</div>
-        <div class="flex justify-between text-sm">
-          <div>
-            <div class="text-gray-400">Pemasukan</div>
-            <div class="text-green-400" id="total-income">Rp 0</div>
-          </div>
-          <div>
-            <div class="text-gray-400">Pengeluaran</div>
-            <div class="text-red-400" id="total-expense">Rp 0</div>
-          </div>
-        </div>
-      </div>
-      
-      <!-- Add Transaction -->
-      <div class="bg-gray-800 p-4 rounded-lg">
-        <h2 class="text-lg mb-4">Tambah Transaksi</h2>
-        <div class="mb-3">
-          <select id="transaction-type" class="w-full bg-gray-700 p-2 rounded">
-            <option value="masuk">Pemasukan</option>
-            <option value="keluar">Pengeluaran</option>
-          </select>
-        </div>
-        <div class="mb-3">
-          <input type="number" id="transaction-amount" placeholder="Jumlah" class="w-full bg-gray-700 p-2 rounded">
-        </div>
-        <div class="mb-3">
-          <input type="text" id="transaction-desc" placeholder="Keterangan" class="w-full bg-gray-700 p-2 rounded">
-        </div>
-        <button id="add-transaction-btn" class="w-full bg-blue-600 hover:bg-blue-700 py-2 rounded">Tambah</button>
-      </div>
-    </div>
-    
-    <!-- Transactions List -->
-    <div class="mt-8">
-      <h2 class="text-xl mb-4">Daftar Transaksi</h2>
-      <div id="transactions-list" class="space-y-3">
-        <div class="text-center py-10 text-gray-500">Memuat data transaksi...</div>
-      </div>
-    </div>
+
+  <!-- Register Form -->
+  <div id="register-page" class="hidden">
+    <h2>Register</h2>
+    <input type="text" id="register-name" placeholder="Nama Lengkap">
+    <input type="email" id="register-email" placeholder="Email">
+    <input type="password" id="register-password" placeholder="Password">
+    <button id="register-btn">Register</button>
+    <p><a href="#" id="go-login">Sudah punya akun? Login</a></p>
+    <div id="register-error" style="color:red;"></div>
+  </div>
+
+  <!-- Dashboard -->
+  <div id="dashboard-page" class="hidden">
+    <h2>Dashboard</h2>
+    <p>Halo <span id="user-name">...</span> 👋</p>
+    <button id="logout-btn">Logout</button>
   </div>
 
   <script>
-    // Inisialisasi Appwrite SDK
-    const { Client, Account, Databases, Query, ID } = Appwrite;
-    
+    const { Client, Account, ID } = Appwrite;
     const client = new Client()
-      .setEndpoint('https://fra.cloud.appwrite.io/v1')
-      .setProject('686f8911000c95bfb037');
-      
+      .setEndpoint('https://fra.cloud.appwrite.io/v1') // Ganti jika pakai server sendiri
+      .setProject('686f8911000c95bfb037');              // Ganti dengan Project ID kamu
+
     const account = new Account(client);
-    const databases = new Databases(client);
-    
-    const DB_ID = 'kas_qc_shift';
-    const COLLECTION_ID = 'transactions';
-    
-    // DOM Elements
-    const authPage = document.getElementById('auth-page');
-    const dashboardPage = document.getElementById('dashboard-page');
-    const loginForm = document.getElementById('login-form');
-    const registerForm = document.getElementById('register-form');
-    const loginTabBtn = document.getElementById('login-tab-btn');
-    const registerTabBtn = document.getElementById('register-tab-btn');
-    const loginBtn = document.getElementById('login-btn');
-    const registerBtn = document.getElementById('register-btn');
-    const logoutBtn = document.getElementById('logout-btn');
-    const addTransactionBtn = document.getElementById('add-transaction-btn');
-    
-    // Fungsi untuk menampilkan loading
-    function showLoading(button) {
-      const spinner = document.createElement('div');
-      spinner.className = 'loading-spinner';
-      button.disabled = true;
-      button.querySelector('span').style.opacity = '0.7';
-      button.appendChild(spinner);
-    }
-    
-    function hideLoading(button) {
-      button.disabled = false;
-      button.querySelector('span').style.opacity = '1';
-      const spinner = button.querySelector('.loading-spinner');
-      if (spinner) spinner.remove();
-    }
-    
-    // Fungsi untuk beralih halaman
-    function showPage(pageId) {
-      document.querySelectorAll('.page').forEach(page => {
-        page.classList.remove('active-page');
-      });
-      document.getElementById(pageId).classList.add('active-page');
-    }
-    
-    // Fungsi untuk memuat data user
-    async function loadUserData() {
+
+    // Elemen
+    const loginPage = document.getElementById("login-page");
+    const registerPage = document.getElementById("register-page");
+    const dashboardPage = document.getElementById("dashboard-page");
+
+    // Navigasi
+    document.getElementById("go-register").onclick = () => {
+      loginPage.classList.add("hidden");
+      registerPage.classList.remove("hidden");
+    };
+    document.getElementById("go-login").onclick = () => {
+      registerPage.classList.add("hidden");
+      loginPage.classList.remove("hidden");
+    };
+
+    // Login
+    document.getElementById("login-btn").onclick = async () => {
+      const email = document.getElementById("login-email").value;
+      const password = document.getElementById("login-password").value;
+      const error = document.getElementById("login-error");
+
       try {
-        const user = await account.get();
-        document.getElementById('user-name').textContent = user.name;
-        document.getElementById('user-email').textContent = user.email;
-        document.getElementById('user-initial').textContent = user.name.charAt(0).toUpperCase();
-      } catch (error) {
-        console.error('Gagal memuat data user:', error);
-      }
-    }
-    
-    // Fungsi untuk memuat transaksi
-    async function loadTransactions() {
-      try {
-        const transactions = await databases.listDocuments(
-          DB_ID,
-          COLLECTION_ID,
-          [Query.orderDesc('$createdAt')]
-        );
-        
-        let totalIncome = 0;
-        let totalExpense = 0;
-        
-        const transactionsHTML = transactions.documents.map(transaction => {
-          const amount = parseInt(transaction.amount);
-          
-          if (transaction.type === 'masuk') {
-            totalIncome += amount;
-          } else {
-            totalExpense += amount;
-          }
-          
-          return `
-            <div class="bg-gray-800 p-3 rounded-lg flex justify-between items-center 
-              ${transaction.type === 'masuk' ? 'border-l-4 border-green-500' : 'border-l-4 border-red-500'}">
-              <div>
-                <div class="font-medium">${transaction.description}</div>
-                <div class="text-sm text-gray-400">
-                  ${new Date(transaction.$createdAt).toLocaleDateString('id-ID')}
-                </div>
-              </div>
-              <div class="${transaction.type === 'masuk' ? 'text-green-400' : 'text-red-400'} font-mono">
-                ${transaction.type === 'masuk' ? '+' : '-'}Rp ${amount.toLocaleString('id-ID')}
-              </div>
-            </div>
-          `;
-        }).join('');
-        
-        document.getElementById('transactions-list').innerHTML = transactionsHTML || 
-          '<div class="text-center py-10 text-gray-500">Tidak ada transaksi</div>';
-        
-        document.getElementById('total-saldo').textContent = 
-          `Rp ${(totalIncome - totalExpense).toLocaleString('id-ID')}`;
-        document.getElementById('total-income').textContent = `Rp ${totalIncome.toLocaleString('id-ID')}`;
-        document.getElementById('total-expense').textContent = `Rp ${totalExpense.toLocaleString('id-ID')}`;
-        
-      } catch (error) {
-        console.error('Gagal memuat transaksi:', error);
-        document.getElementById('transactions-list').innerHTML = 
-          '<div class="text-center py-10 text-red-400">Gagal memuat transaksi</div>';
-      }
-    }
-    
-    // Event Listeners
-    loginTabBtn.addEventListener('click', () => {
-      loginForm.classList.remove('hidden');
-      registerForm.classList.add('hidden');
-      loginTabBtn.classList.add('bg-gray-700');
-      registerTabBtn.classList.remove('bg-gray-700');
-    });
-    
-    registerTabBtn.addEventListener('click', () => {
-      registerForm.classList.remove('hidden');
-      loginForm.classList.add('hidden');
-      registerTabBtn.classList.add('bg-gray-700');
-      loginTabBtn.classList.remove('bg-gray-700');
-    });
-    
-    loginBtn.addEventListener('click', async () => {
-      const email = document.getElementById('login-email').value;
-      const password = document.getElementById('login-password').value;
-      const errorElement = document.getElementById('login-error');
-      
-      if (!email || !password) {
-        errorElement.textContent = 'Email dan password harus diisi';
-        return;
-      }
-      
-      try {
-        showLoading(loginBtn);
-        errorElement.textContent = '';
-        
         await account.createEmailSession(email, password);
-        await loadUserData();
-        await loadTransactions();
-        showPage('dashboard-page');
-      } catch (error) {
-        console.error('Login error:', error);
-        errorElement.textContent = error.message || 'Login gagal. Periksa email dan password Anda.';
-      } finally {
-        hideLoading(loginBtn);
+        const user = await account.get();
+        document.getElementById("user-name").textContent = user.name;
+        loginPage.classList.add("hidden");
+        dashboardPage.classList.remove("hidden");
+      } catch (err) {
+        console.error(err);
+        error.textContent = err.message;
       }
-    });
-    
-    registerBtn.addEventListener('click', async () => {
-      const name = document.getElementById('register-name').value;
-      const email = document.getElementById('register-email').value;
-      const password = document.getElementById('register-password').value;
-      const errorElement = document.getElementById('register-error');
-      
-      if (!name || !email || !password) {
-        errorElement.textContent = 'Semua field harus diisi';
-        return;
-      }
-      
-      if (password.length < 8) {
-        errorElement.textContent = 'Password minimal 8 karakter';
-        return;
-      }
-      
+    };
+
+    // Register
+    document.getElementById("register-btn").onclick = async () => {
+      const name = document.getElementById("register-name").value;
+      const email = document.getElementById("register-email").value;
+      const password = document.getElementById("register-password").value;
+      const error = document.getElementById("register-error");
+
       try {
-        showLoading(registerBtn);
-        errorElement.textContent = '';
-        
         await account.create(ID.unique(), email, password, name);
         await account.createEmailSession(email, password);
-        await loadUserData();
-        await loadTransactions();
-        showPage('dashboard-page');
-      } catch (error) {
-        console.error('Register error:', error);
-        errorElement.textContent = error.message || 'Registrasi gagal. Email mungkin sudah digunakan.';
-      } finally {
-        hideLoading(registerBtn);
+        const user = await account.get();
+        document.getElementById("user-name").textContent = user.name;
+        registerPage.classList.add("hidden");
+        dashboardPage.classList.remove("hidden");
+      } catch (err) {
+        console.error(err);
+        error.textContent = err.message;
       }
-    });
-    
-    logoutBtn.addEventListener('click', async () => {
-      try {
-        await account.deleteSession('current');
-        showPage('auth-page');
-        // Reset form
-        document.getElementById('login-email').value = '';
-        document.getElementById('login-password').value = '';
-        document.getElementById('register-name').value = '';
-        document.getElementById('register-email').value = '';
-        document.getElementById('register-password').value = '';
-      } catch (error) {
-        console.error('Logout error:', error);
-        alert('Logout gagal: ' + error.message);
-      }
-    });
-    
-    addTransactionBtn.addEventListener('click', async () => {
-      const type = document.getElementById('transaction-type').value;
-      const amount = document.getElementById('transaction-amount').value;
-      const desc = document.getElementById('transaction-desc').value;
-      
-      if (!amount || !desc) {
-        alert('Jumlah dan keterangan harus diisi');
-        return;
-      }
-      
+    };
+
+    // Logout
+    document.getElementById("logout-btn").onclick = async () => {
+      await account.deleteSession('current');
+      dashboardPage.classList.add("hidden");
+      loginPage.classList.remove("hidden");
+    };
+
+    // Cek apakah user sudah login saat halaman dimuat
+    document.addEventListener("DOMContentLoaded", async () => {
       try {
         const user = await account.get();
-        
-        await databases.createDocument(
-          DB_ID,
-          COLLECTION_ID,
-          ID.unique(),
-          {
-            type,
-            amount: parseInt(amount),
-            description: desc,
-            userId: user.$id,
-            userName: user.name
-          }
-        );
-        
-        // Reset form
-        document.getElementById('transaction-amount').value = '';
-        document.getElementById('transaction-desc').value = '';
-        
-        // Refresh data
-        await loadTransactions();
-        
-        alert('Transaksi berhasil ditambahkan');
-      } catch (error) {
-        console.error('Error adding transaction:', error);
-        alert('Gagal menambahkan transaksi: ' + error.message);
+        document.getElementById("user-name").textContent = user.name;
+        loginPage.classList.add("hidden");
+        dashboardPage.classList.remove("hidden");
+      } catch {
+        // Tidak login
+        loginPage.classList.remove("hidden");
       }
     });
-    
-    // Cek status login saat halaman dimuat
-    async function initApp() {
-      try {
-        await account.get();
-        await loadUserData();
-        await loadTransactions();
-        showPage('dashboard-page');
-      } catch (error) {
-        showPage('auth-page');
-      }
-    }
-    
-    // Jalankan aplikasi
-    document.addEventListener('DOMContentLoaded', initApp);
   </script>
 </body>
 </html>
