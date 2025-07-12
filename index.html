@@ -42,86 +42,81 @@
     <button id="logout-btn">Logout</button>
   </div>
 
-  <script>
-    const { Client, Account, ID } = Appwrite;
-    const client = new Client()
-      .setEndpoint('https://fra.cloud.appwrite.io/v1') // Ganti jika pakai server sendiri
-      .setProject('686f8911000c95bfb037');              // Ganti dengan Project ID kamu
+<script>
+  const client = new Appwrite.Client()
+    .setEndpoint('https://fra.cloud.appwrite.io/v1')
+    .setProject('686f8911000c95bfb037');
 
-    const account = new Account(client);
+  const account = new Appwrite.Account(client);
+  const ID = Appwrite.ID;
 
-    // Elemen
-    const loginPage = document.getElementById("login-page");
-    const registerPage = document.getElementById("register-page");
-    const dashboardPage = document.getElementById("dashboard-page");
+  // Element references
+  const loginPage = document.getElementById("login-page");
+  const registerPage = document.getElementById("register-page");
+  const dashboardPage = document.getElementById("dashboard-page");
 
-    // Navigasi
-    document.getElementById("go-register").onclick = () => {
+  document.getElementById("go-register").onclick = () => {
+    loginPage.classList.add("hidden");
+    registerPage.classList.remove("hidden");
+  };
+
+  document.getElementById("go-login").onclick = () => {
+    registerPage.classList.add("hidden");
+    loginPage.classList.remove("hidden");
+  };
+
+  document.getElementById("login-btn").onclick = async () => {
+    const email = document.getElementById("login-email").value;
+    const password = document.getElementById("login-password").value;
+    const error = document.getElementById("login-error");
+
+    try {
+      await account.createEmailSession(email, password);
+      const user = await account.get();
+      document.getElementById("user-name").textContent = user.name;
       loginPage.classList.add("hidden");
-      registerPage.classList.remove("hidden");
-    };
-    document.getElementById("go-login").onclick = () => {
+      dashboardPage.classList.remove("hidden");
+    } catch (err) {
+      console.error(err);
+      error.textContent = err.message;
+    }
+  };
+
+  document.getElementById("register-btn").onclick = async () => {
+    const name = document.getElementById("register-name").value;
+    const email = document.getElementById("register-email").value;
+    const password = document.getElementById("register-password").value;
+    const error = document.getElementById("register-error");
+
+    try {
+      await account.create(ID.unique(), email, password, name);
+      await account.createEmailSession(email, password);
+      const user = await account.get();
+      document.getElementById("user-name").textContent = user.name;
       registerPage.classList.add("hidden");
+      dashboardPage.classList.remove("hidden");
+    } catch (err) {
+      console.error(err);
+      error.textContent = err.message;
+    }
+  };
+
+  document.getElementById("logout-btn").onclick = async () => {
+    await account.deleteSession('current');
+    dashboardPage.classList.add("hidden");
+    loginPage.classList.remove("hidden");
+  };
+
+  document.addEventListener("DOMContentLoaded", async () => {
+    try {
+      const user = await account.get();
+      document.getElementById("user-name").textContent = user.name;
+      loginPage.classList.add("hidden");
+      dashboardPage.classList.remove("hidden");
+    } catch {
       loginPage.classList.remove("hidden");
-    };
-
-    // Login
-    document.getElementById("login-btn").onclick = async () => {
-      const email = document.getElementById("login-email").value;
-      const password = document.getElementById("login-password").value;
-      const error = document.getElementById("login-error");
-
-      try {
-        await account.createEmailSession(email, password);
-        const user = await account.get();
-        document.getElementById("user-name").textContent = user.name;
-        loginPage.classList.add("hidden");
-        dashboardPage.classList.remove("hidden");
-      } catch (err) {
-        console.error(err);
-        error.textContent = err.message;
-      }
-    };
-
-    // Register
-    document.getElementById("register-btn").onclick = async () => {
-      const name = document.getElementById("register-name").value;
-      const email = document.getElementById("register-email").value;
-      const password = document.getElementById("register-password").value;
-      const error = document.getElementById("register-error");
-
-      try {
-        await account.create(ID.unique(), email, password, name);
-        await account.createEmailSession(email, password);
-        const user = await account.get();
-        document.getElementById("user-name").textContent = user.name;
-        registerPage.classList.add("hidden");
-        dashboardPage.classList.remove("hidden");
-      } catch (err) {
-        console.error(err);
-        error.textContent = err.message;
-      }
-    };
-
-    // Logout
-    document.getElementById("logout-btn").onclick = async () => {
-      await account.deleteSession('current');
-      dashboardPage.classList.add("hidden");
-      loginPage.classList.remove("hidden");
-    };
-
-    // Cek apakah user sudah login saat halaman dimuat
-    document.addEventListener("DOMContentLoaded", async () => {
-      try {
-        const user = await account.get();
-        document.getElementById("user-name").textContent = user.name;
-        loginPage.classList.add("hidden");
-        dashboardPage.classList.remove("hidden");
-      } catch {
-        // Tidak login
-        loginPage.classList.remove("hidden");
-      }
-    });
-  </script>
+    }
+  });
+</script
 </body>
 </html>
