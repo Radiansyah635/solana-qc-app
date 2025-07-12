@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Login Appwrite</title>
-  <script src="https://cdn.jsdelivr.net/npm/appwrite@13.0.0/dist/appwrite.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/appwrite@13.0.1"></script>
   <style>
     body { font-family: sans-serif; max-width: 400px; margin: 50px auto; }
     .hidden { display: none; }
@@ -41,11 +41,16 @@
     <p>Halo <span id="user-name">...</span> 👋</p>
     <button id="logout-btn">Logout</button>
   </div>
-
-<script>
+  <script>
   const client = new Appwrite.Client()
     .setEndpoint('https://fra.cloud.appwrite.io/v1')
     .setProject('686f8911000c95bfb037');
+
+  const account = new Appwrite.Account(client);
+
+  account.get()
+    .then(u => alert('✅ Appwrite terhubung sebagai: ' + u.name))
+    .catch(err => alert('❌ Gagal konek: ' + err.message));
 
   const account = new Appwrite.Account(client);
   const ID = Appwrite.ID;
@@ -117,6 +122,6 @@
       loginPage.classList.remove("hidden");
     }
   });
-</script
+</script>
 </body>
 </html>
